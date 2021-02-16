@@ -4,7 +4,7 @@
 
 <script>
 export default {
-  name: 'Game'
+  name: 'whitecard'
 }
 </script>
 

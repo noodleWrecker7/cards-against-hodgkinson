@@ -1,6 +1,5 @@
 <template>
 <div class="whitecard">
-
 </div>
 </template>
 

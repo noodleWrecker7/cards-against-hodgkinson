@@ -9,3 +9,5 @@ deploy:
   keyfile: travisacckey.json
   project: cardsagainsthodgkinson
   version: "$TRAVIS_BUILD_NUMBER"
+  on:
+    branch: master

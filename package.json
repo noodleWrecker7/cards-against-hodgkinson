@@ -6,16 +6,19 @@
     "serve": "vue-cli-service serve",
     "build": "vue-cli-service build",
     "lint": "vue-cli-service lint",
-    "start": "node server/server.js"
+    "start": "node server/server.js",
+    "server": "nodemon server/server.js --watch server --inspect"
   },
   "dependencies": {
     "core-js": "^3.6.5",
     "express": "^4.17.1",
     "nodemon": "^2.0.7",
+    "socket.io-client": "^3.1.1",
     "vue": "^2.6.11",
     "vue-router": "^3.2.0",
     "vue-socket.io-extended": "^4.0.6",
-    "vuex": "^3.4.0"
+    "vuex": "^3.4.0",
+    "vuex-persistedstate": "^4.0.0-beta.3"
   },
   "devDependencies": {
     "@vue/cli-plugin-babel": "~4.5.0",

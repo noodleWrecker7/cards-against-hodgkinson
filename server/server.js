@@ -1,5 +1,13 @@
 console.log('Server Starting')
-console.log('Current Build: ' + process.env.GAE_VERSION)
+
+var origin
+if (process.env.buildmode !== 'production') {
+  console.log('Currently running on beta branch')
+  origin = 'http://localhost:8080'
+} else {
+  console.log('Current Build: ' + process.env.GAE_VERSION)
+  origin = 'https://cards.adamhodgkinson.dev'
+}
 
 // todo express, socket.io, sysinfo
 
@@ -7,18 +15,20 @@ var app = require('express')()
 var http = require('http').Server(app)
 var io = require('socket.io')(http, {
   cors: {
-    origin: 'http://localhost:8080',
+    origin: origin,
     methods: ['GET', 'POST'],
     allowedHeaders: ['my-custom-header'],
     credentials: true,
     allowEIO3: true
   }
 })
-const PORT = process.env.PORT || 6999
+const PORT = process.env.PORT || 1984
 
 io.on('connection', function (socket) {
   // handle sockets
+  console.log('connection received')
 
+  socket.emit('welcometoserver', process.env.GAE_VERSION ? process.env.GAE_VERSION : 'Beta')
 }
 )
 

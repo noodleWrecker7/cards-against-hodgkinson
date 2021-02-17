@@ -1,10 +1,15 @@
 <template>
-<div></div>
+<div>Game</div>
 </template>
 
 <script>
 export default {
-  name: 'Game'
+  name: 'Game',
+  mounted () {
+    if (!this.$store.state.loggedIn) {
+      this.$router.push('/')
+    }
+  }
 }
 </script>
 

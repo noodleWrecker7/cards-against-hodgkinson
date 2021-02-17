@@ -21,7 +21,12 @@ const routes = [
     path: '/game/:gameID',
     name: 'Game',
     component: Game
+  },
+  {
+    path: '/game',
+    redirect: '/'
   }
+
 ]
 
 const router = new VueRouter({

@@ -22,6 +22,21 @@ var io = require('socket.io')(http, {
     allowEIO3: true
   }
 })
+
+var firebase = require('firebase/app')
+
+require('firebase/auth')
+require('firebase/database')
+
+const firebaseConfig = {}
+
+// Initialize Firebase
+firebase.initializeApp(firebaseConfig)
+var database = firebase.database()
+var ref = database.ref('test')
+ref.get().then(function (data) {
+  console.log(data)
+})
 const PORT = process.env.PORT || 1984
 
 io.on('connection', function (socket) {
@@ -29,8 +44,16 @@ io.on('connection', function (socket) {
   console.log('connection received')
 
   socket.emit('welcometoserver', process.env.GAE_VERSION ? process.env.GAE_VERSION : 'Beta')
+
+  socket.on('applyforusername', function (data) {
+    applyforusername(data, socket)
+  })
 }
 )
+
+function applyforusername (data, socket) {
+
+}
 
 app.get('/*', function (request, response) {
   console.log(request.path)

@@ -22,6 +22,7 @@ export default {
   methods: {
     submitName () {
       console.log(this.username)
+      this.$socket.client.emit('applyforusername', this.username)
     }
   },
   mounted () {

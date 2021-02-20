@@ -7,18 +7,19 @@ before_install:
   - openssl aes-256-cbc -K $encrypted_24ecaed9e146_key -iv $encrypted_24ecaed9e146_iv
     -in travisacckey.json.enc -out travisacckey.json -d
 deploy:
-  provider: gae
-  keyfile: travisacckey.json
-  project: cardsagainsthodgkinson
-  version: "$TRAVIS_BUILD_NUMBER"
-  on:
-    branch: master
+  - provider: gae
+    keyfile: travisacckey.json
+    project: cardsagainsthodgkinson
+    version: "$TRAVIS_BUILD_NUMBER"
+    on:
+      branch: master
 
-deploy:
-  provider: gae
-  keyfile: travisacckey.json
-  project: cardsagainsthodgkinson
-  version: "$TRAVIS_BUILD_NUMBER"
-  no_promote: true
-  on:
-    branch: beta
+  - provider: gae
+    keyfile: travisacckey.json
+    project: cardsagainsthodgkinson
+    version: "$TRAVIS_BUILD_NUMBER"
+    no_promote: true
+    on:
+      branch: beta
+
+

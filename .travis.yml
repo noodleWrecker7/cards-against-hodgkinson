@@ -20,6 +20,6 @@ deploy:
     keyfile: travisacckey.json
     project: cardsagainsthodgkinson
     version: "$TRAVIS_BUILD_NUMBER"
-    promote: false
+    no-promote: true
     on:
       branch: beta

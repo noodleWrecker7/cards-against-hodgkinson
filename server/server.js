@@ -48,8 +48,40 @@ io.on('connection', function (socket) {
   socket.on('returningsession', function (data) {
     returningsession(data, socket)
   })
+
+  socket.on('requestlobbies', function (data) {
+    requestlobbies(data, socket)
+  })
+
+  socket.on('creategame', function (data) {
+    attemptCreateGame(data, socket)
+  })
 }
 )
+
+function attemptCreateGame (data, socket) {
+  database.ref('users/' + data.uid + '/currentSocket').once('value', (snap) => {
+    if (!snap.exists()) return // todo emit failed create
+    if (snap.val().currentSocket === socket.id) {
+      createGame(data.name, data.maxPlayers, data.ownerID)
+    }
+  })
+}
+
+function requestlobbies (data, socket) {
+  database.ref('gameDisplayInfo').once('value', (snap) => {
+    if (!snap.exists()) return
+    socket.emit('lobbiestoclient', snap.val())
+  })
+}
+
+function createGame (name, maxPlayer, owner) {
+  var id = 'GID' + generateID()
+  var display = { name: name, ownerID: owner, playerCount: 0, maxPlayers: maxPlayer }
+  var gameState = { state: 0 }
+  database.ref('gameDisplayInfo/' + id).set(display)
+  database.ref('gameStates/' + id).set(gameState)
+}
 
 function returningsession (data, socket) {
   database.ref('users/' + data).once('value', (snap) => {
@@ -74,7 +106,7 @@ function applyforusername (data, socket) {
   /* if (snap.val() != null) {
       socket.emit('usernameunavailable', data)
     } else { */
-  const uid = generateUID()
+  const uid = 'UID' + generateID()
   database.ref('users/' + uid).set({
     UID: uid,
     name: data,
@@ -87,9 +119,9 @@ function applyforusername (data, socket) {
   // })
 }
 
-function generateUID () {
+function generateID () {
   const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz1234567890!£%^*()'
-  let str = 'UID' + (new Date()).toTimeString().substr(0, 8).replace(/:/g, '')
+  let str = (new Date()).toTimeString().substr(0, 8).replace(/:/g, '')
   for (let i = 0; i < 4; i++) {
     str += chars.charAt(Math.floor(Math.random() * chars.length))
   }

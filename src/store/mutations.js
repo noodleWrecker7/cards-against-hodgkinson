@@ -11,5 +11,9 @@ export default {
   },
   setUID (state, data) {
     state.UID = data
+  },
+
+  setLobbiesList (state, data) {
+    state.lobbyList = data
   }
 }

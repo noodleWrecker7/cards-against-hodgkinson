@@ -17,5 +17,10 @@ export default {
     context.commit('setLoggedIn', true)
     context.commit('setUsername', data.name)
     context.commit('setUID', data.uid)
+  },
+
+  socket_lobbiestoclient (context, data) {
+    console.log('lobbies recieve')
+    context.commit('setLobbiesList', data)
   }
 }

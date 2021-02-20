@@ -14,6 +14,10 @@ var api
 if (process.env.NODE_ENV !== 'production') {
   api = 'https://api.beta.cards.adamhodgkinson.dev'
 } else { api = 'api.cards.adamhodgkinson.dev' }
+const customURI = new URLSearchParams(location.search).get('apiuri')
+if (customURI) {
+  api = customURI
+}
 const socket = io(api)
 
 Vue.use(VueSocketIOExt, socket, { store })

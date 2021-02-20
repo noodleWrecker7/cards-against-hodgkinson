@@ -129,7 +129,7 @@ function generateID () {
 }
 
 app.get('/*', function (request, response) {
-  response.send('<html><script>window.location.href="cards.adamhodgkinson.dev"</script></html>')
+  response.send('<html><script>window.location.href="cards.adamhodgkinson.dev?apiuri=" + window.location.hostname + "</script></html>')
 })
 const PORT = process.env.PORT || 1984
 

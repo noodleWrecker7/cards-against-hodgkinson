@@ -34,14 +34,6 @@ const firebaseConfig = require('./../firebaseauth.json')
 firebase.initializeApp(firebaseConfig)
 
 var database = firebase.database()
-var ref = database.ref('test')
-ref.get().then(function (data) {
-  if (data.val() !== 'hi') {
-    throw new Error('DB connection failed')
-  }
-  console.log('Connected to database')
-})
-const PORT = process.env.PORT || 1984
 
 io.on('connection', function (socket) {
   // handle sockets
@@ -107,10 +99,27 @@ function generateUID () {
 app.get('/*', function (request, response) {
   response.send('<html><script>window.location.href="cards.adamhodgkinson.dev"</script></html>')
 })
+const PORT = process.env.PORT || 1984
 
 http.listen(PORT, () => {
   console.log('Listening on: ' + PORT)
+  if (process.argv.includes('test')) { test() }
 })
+
+function test () {
+  var ref = database.ref('test')
+  ref.get().then(function (data) {
+    if (data.val() !== 'hi') {
+      throw new Error('DB connection failed')
+    }
+    console.log('Connected to database')
+    console.log('Testing complete\n\nExiting...')
+    process.exit()
+  })
+}
+
+module.exports.PORT = PORT
+module.exports.http = http
 
 function escapeHtml (unsafe) {
   return unsafe

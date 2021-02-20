@@ -22,6 +22,6 @@ deploy:
     project: cardsagainsthodgkinson
     version: "$TRAVIS_BUILD_NUMBER"
     skip_cleanup: true
-    no-promote: true
+    no_promote: true
     on:
       branch: beta

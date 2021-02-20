@@ -22,6 +22,7 @@ export default {
     if (!this.$store.state.loggedIn) {
       this.$router.push('/')
     }
+    this.$socket.client.emit('requestlobbies')
   }
 }
 </script>

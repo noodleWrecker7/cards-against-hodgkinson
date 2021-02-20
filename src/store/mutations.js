@@ -8,6 +8,8 @@ export default {
 
   setUsername (state, data) {
     state.userName = data
+  },
+  setUID (state, data) {
+    state.UID = data
   }
-
 }

@@ -12,6 +12,15 @@
 
 export default {
   name: 'Home',
+  sockets: {
+    usernameunavailable () { // never actually sent anymore
+      alert('That username is unavailable :(\nTry a new name?')
+    },
+    usernameaccepted (data) {
+      this.$store.dispatch('logIn', data)
+      this.$router.push(data.state)
+    }
+  },
   components: {
   },
   data () {

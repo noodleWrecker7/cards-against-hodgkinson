@@ -13,3 +13,12 @@ deploy:
   version: "$TRAVIS_BUILD_NUMBER"
   on:
     branch: master
+
+deploy:
+  provider: gae
+  keyfile: travisacckey.json
+  project: cardsagainsthodgkinson
+  version: "$TRAVIS_BUILD_NUMBER"
+  no_promote: true
+  on:
+    branch: beta

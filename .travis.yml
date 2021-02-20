@@ -13,7 +13,7 @@ deploy:
     keyfile: travisacckey.json
     project: cardsagainsthodgkinson
     version: "$TRAVIS_BUILD_NUMBER"
-    skip_cleanup: true
+    cleanup: false
     promote: true
     on:
       branch: master
@@ -21,7 +21,7 @@ deploy:
     keyfile: travisacckey.json
     project: cardsagainsthodgkinson
     version: "$TRAVIS_BUILD_NUMBER"
-    skip_cleanup: true
-    no_promote: true
+    cleanup: false
+    promote: false
     on:
       branch: beta

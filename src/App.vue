@@ -66,6 +66,7 @@ export default {
 #nav {
   padding: 30px;
   padding-top: 0;
+  padding-bottom: 10px;
   background-color: grey;
 }
 

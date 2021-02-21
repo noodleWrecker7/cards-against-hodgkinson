@@ -1,6 +1,6 @@
 <template>
 <div class="card">
-  {{game.displayName}}
+  {{game.name}}
   <br>
   {{game.playerCount}} / {{game.maxPlayers}}
   <div></div>
@@ -12,13 +12,17 @@
 export default {
   name: 'lobbyCard',
   props: [
-    'game'
+    'game',
+    'gid'
   ],
   methods: {
     join () {
       // dispatch action join game etc
-      console.log(this.game.gameID)
+      console.log(this.gid)
     }
+  },
+  mounted () {
+    console.log(this.gid)
   }
 }
 </script>

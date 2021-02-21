@@ -2,7 +2,7 @@
   <div id="app">
     <div id="nav">
       <p id="version-tag">{{ this.$store.state.versionName }}</p>
-      <div v-if="$store.state.userName">
+      <div v-if="$store.state.loggedIn">
 
         You are logged in as {{this.$store.state.userName}}
         <button @click="logout()" id="logout-button">Log Out</button>
@@ -26,6 +26,22 @@ export default {
     logout () {
       this.$store.dispatch('logOut')
       this.$router.push('/')
+    }
+  },
+  sockets: {
+    returningsessionaccepted (data) {
+      // set username
+      // set logged in
+      this.$store.dispatch('logIn', { name: data.name, uid: this.$store.state.UID })
+      // go to state
+      this.$router.push(data.state)
+    },
+    returningsessioninvalid () {
+      this.$store.dispatch('logOut')
+      this.$router.push('/')
+      // clear uid
+      // clear name
+      // go to home
     }
   }
 }

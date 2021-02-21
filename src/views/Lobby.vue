@@ -1,7 +1,7 @@
 <template>
   <div id="lobby">
     <div id="lobby-cards-container">
-      <lobby-card v-for="lobby in lobbyList" :game="lobby" :key="lobby.gameID"/>
+      <lobby-card v-for="(lobby, gid) in lobbyList" :game="lobby" :key="gid" :gid="gid"/>
     </div>
   </div>
 </template>
@@ -22,6 +22,7 @@ export default {
     if (!this.$store.state.loggedIn) {
       this.$router.push('/')
     }
+    this.$socket.client.emit('requestlobbies')
   }
 }
 </script>

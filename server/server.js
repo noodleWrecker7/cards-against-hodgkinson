@@ -1,11 +1,13 @@
 console.log('Server Starting')
 
+require('@google-cloud/debug-agent').start({ serviceContext: { enableCanary: false } })
+
 var origin
 if (process.env.buildmode !== 'production') {
   console.log('Currently running on beta branch')
   origin = 'http://localhost:8080'
 } else {
-  console.log('Current Build: ' + process.env.GAE_VERSION)
+  console.log('Current Build: #' + process.env.GAE_VERSION)
   origin = 'https://cards.adamhodgkinson.dev'
 }
 
@@ -129,7 +131,8 @@ function generateID () {
 }
 
 app.get('/*', function (request, response) {
-  response.send('<html><script>window.location.href="cards.adamhodgkinson.dev?apiuri=" + window.location.hostname + "</script></html>')
+  console.log(request.path)
+  response.send('<html lang="uk"><script>window.location.href="cards.adamhodgkinson.dev?apiuri=" + window.location.hostname + "</script></html>')
 })
 const PORT = process.env.PORT || 1984
 

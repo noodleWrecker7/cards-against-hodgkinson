@@ -62,27 +62,31 @@ io.on('connection', function (socket) {
 )
 
 function attemptCreateGame (data, socket) {
+  console.log('requested to make game')
   database.ref('users/' + data.uid + '/currentSocket').once('value', (snap) => {
     if (!snap.exists()) return // todo emit failed create
-    if (snap.val().currentSocket === socket.id) {
-      createGame(data.name, data.maxPlayers, data.ownerID)
+    if (snap.val() === socket.id) {
+      console.log()
+      const id = createGame(data.title, data.maxPlayers, data.uid, data.maxRounds, data.isPrivate, data.ownerName)
+      socket.emit('gamecreatedsuccess', id)
     }
   })
 }
 
 function requestlobbies (data, socket) {
-  database.ref('gameDisplayInfo').once('value', (snap) => {
+  database.ref('gameDisplayInfo').orderByChild('isPrivate').equalTo(false).once('value', (snap) => {
     if (!snap.exists()) return
     socket.emit('lobbiestoclient', snap.val())
   })
 }
 
-function createGame (name, maxPlayer, owner) {
+function createGame (name, maxPlayer, owner, maxRounds, isPrivate, ownerName) {
   var id = 'GID' + generateID()
-  var display = { name: name, ownerID: owner, playerCount: 0, maxPlayers: maxPlayer }
-  var gameState = { state: 0 }
+  var display = { name: name, ownerName: ownerName, playerCount: 0, maxPlayers: maxPlayer, isPrivate: isPrivate }
+  var gameState = { state: 0, name: name, ownerID: owner, playerCount: 0, maxPlayers: maxPlayer, maxRounds: maxRounds, isPrivate: isPrivate }
   database.ref('gameDisplayInfo/' + id).set(display)
   database.ref('gameStates/' + id).set(gameState)
+  return id
 }
 
 function returningsession (data, socket) {
@@ -132,7 +136,7 @@ function generateID () {
 
 app.get('/*', function (request, response) {
   console.log(request.path)
-  response.send('<html lang="uk"><script>window.location.href="cards.adamhodgkinson.dev?apiuri=" + window.location.hostname + "</script></html>')
+  response.send('<html lang="uk"><script>window.location.href="https://cards.adamhodgkinson.dev?apiuri=" + window.location.hostname</script></html>')
 })
 const PORT = process.env.PORT || 1984
 

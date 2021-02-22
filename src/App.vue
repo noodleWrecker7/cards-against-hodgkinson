@@ -34,7 +34,6 @@ export default {
       // set logged in
       this.$store.dispatch('logIn', { name: data.name, uid: this.$store.state.UID })
       // go to state
-      this.$router.push(data.state)
     },
     returningsessioninvalid () {
       this.$store.dispatch('logOut')

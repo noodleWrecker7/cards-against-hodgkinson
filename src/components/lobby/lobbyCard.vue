@@ -19,6 +19,7 @@ export default {
     join () {
       // dispatch action join game etc
       console.log(this.gid)
+      this.$router.push('/game/' + this.gid)
     }
   },
   mounted () {

@@ -1,5 +1,5 @@
 <template>
-<div class="whitecard">
+<div class="card-itself">
 </div>
 </template>
 
@@ -10,5 +10,10 @@ export default {
 </script>
 
 <style scoped>
-
+.card-itself{
+  border-radius: 20px;
+  background-color: whitesmoke;
+  width: 12em;
+  height:18em;
+}
 </style>

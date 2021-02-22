@@ -5,5 +5,6 @@ export default {
   loggedIn: true,
   lobbyList: {
 
-  }
+  },
+  gameData: {}
 }

@@ -36,11 +36,18 @@ export default {
     ]
     )
   },
+  sockets: {
+    gamenotfound () {
+      this.$router.replace('//lobby')
+    }
+  },
   mounted () {
     if (!this.$store.state.loggedIn) {
       this.$router.push('/')
     }
     console.log(this.gameID)
+    this.$store.dispatch('setGID', this.gameID)
+    this.$socket.client.emit('arriveatgamepage', { uid: this.$store.state.UID, gid: this.gameID })
   }
 }
 </script>

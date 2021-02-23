@@ -10,8 +10,24 @@ if (process.env.buildmode !== 'production') {
   console.log('Current Build: #' + process.env.GAE_VERSION)
   origin = 'https://cards.adamhodgkinson.dev'
 }
+const blackCards = require('./../data/black.json')
+const blackCardsLength = blackCards.length
+console.log('Loaded %s black cards', blackCardsLength)
+const whiteCards = require('./../data/white.json')
+const whiteCardsLength = whiteCards.length
+console.log('Loaded %s white cards', whiteCardsLength)
 
-// todo express, socket.io, sysinfo
+// eslint-disable-next-line no-unused-vars
+function getBlackCard () {
+  const r = Math.random() * blackCardsLength
+  return blackCards[r]
+}
+
+// eslint-disable-next-line no-unused-vars
+function getWhiteCard () {
+  const r = Math.random() * whiteCardsLength
+  return whiteCards[r]
+}
 
 var app = require('express')()
 var http = require('http').Server(app)
@@ -58,13 +74,83 @@ io.on('connection', function (socket) {
   socket.on('creategame', function (data) {
     attemptCreateGame(data, socket)
   })
+
+  socket.on('arriveatgamepage', function (data) {
+    arriveAtGamePage(data, socket)
+  })
+
+  socket.on('logout', logout)
 }
 )
+
+function logout (data) {
+  database.ref('users/' + data + '/state').get().then((snap) => {
+    if (!snap.exists()) return
+    const state = snap.val()
+    if (state.includes('GID')) {
+      console.log('logged out user has game')
+      const gid = state.substring(state.indexOf('GID'))
+      removePlayerFromGame(data, gid)
+    }
+  })
+  database.ref('users/' + data).remove()
+}
+
+// eslint-disable-next-line no-unused-vars
+function removePlayerFromGame (uid, gid) {
+// todo implement player removing
+}
+
+// todo add spectator functionality
+function arriveAtGamePage (data, socket) {
+  database.ref('gameStates/' + data.gid).get().then((gamesnap) => {
+    if (!gamesnap.exists()) {
+      socket.emit('gamenotfound')
+    } else {
+      database.ref('users/' + data.uid + '/state').get().then((usersnap) => {
+        if (!usersnap.exists()) {
+          socket.emit('returningsessioninvalid')
+        } else if (gamesnap.val().gameplayInfo.players && (Object.keys(gamesnap.val().gameplayInfo.players).includes(data.uid) || gamesnap.val().spectators.includes(data.uid))) { // if user is already in game, or spectator
+          // do nothing?
+          // fixme hide player uids when sending
+          //  or add a secret key for a uid that is checked at start of every call
+          socket.emit('sendallgamedata', gamesnap.val().gameplayInfo)
+          if (Object.keys(gamesnap.val().whiteCardsData).includes(data.uid)) {
+            socket.emit('sendplayerwhitecards', gamesnap.val().whiteCardsData[data.uid].inventory)
+          }
+        } else {
+          if (usersnap.val().includes('game')) { // if already in a game
+            removePlayerFromGame()
+          }
+          joinPlayerToGame(data.uid, data.gid)
+        }
+      })
+    }
+  })
+}
+
+function joinPlayerToGame (uid, gid) {
+  console.log('join player to game')
+  database.ref('users/' + uid + '/name').get().then((snap) => {
+    database.ref('gameStates/' + gid + '/players/' + uid).set({
+      name: snap.val(),
+      points: 0,
+      hasPlayed: false
+    })
+    database.ref('gameStates/' + gid + '/players').get().then((gsnap) => {
+      database.ref('gameDisplayInfo/' + gid + '/playerCount').set(Object.keys(gsnap.val()).length)
+    })
+    database.ref('users/' + uid + '/state').set('game/' + gid)
+  })
+}
 
 function attemptCreateGame (data, socket) {
   console.log('requested to make game')
   database.ref('users/' + data.uid + '/currentSocket').once('value', (snap) => {
-    if (!snap.exists()) return // todo emit failed create
+    if (!snap.exists()) {
+      socket.emit('returningsessioninvalid')
+      return
+    }
     if (snap.val() === socket.id) {
       console.log()
       const id = createGame(data.title, data.maxPlayers, data.uid, data.maxRounds, data.isPrivate, data.ownerName)
@@ -82,8 +168,27 @@ function requestlobbies (data, socket) {
 
 function createGame (name, maxPlayer, owner, maxRounds, isPrivate, ownerName) {
   var id = 'GID' + generateID()
-  var display = { name: name, ownerName: ownerName, playerCount: 0, maxPlayers: maxPlayer, isPrivate: isPrivate }
-  var gameState = { state: 0, name: name, ownerID: owner, playerCount: 0, maxPlayers: maxPlayer, maxRounds: maxRounds, isPrivate: isPrivate }
+  var display = { name: name, ownerName: ownerName, playerCount: 1, maxPlayers: maxPlayer, isPrivate: isPrivate }
+  var gameState = {
+    name: name,
+    spectators: [],
+    whiteCardsData: {
+      [owner]: {
+        inventory: [],
+        played: [],
+        x: ''// this is to avoid firebase deleting the whole object for being empty
+      }
+    },
+    gameplayInfo: {
+      round: 0,
+      maxRounds: maxRounds,
+      creatorUID: owner,
+      playedCards: 0,
+      state: 'not started',
+      players: {
+      }
+    }
+  }
   database.ref('gameDisplayInfo/' + id).set(display)
   database.ref('gameStates/' + id).set(gameState)
   return id
@@ -117,7 +222,7 @@ function applyforusername (data, socket) {
     UID: uid,
     name: data,
     currentSocket: socket.id,
-    state: 'lobby' // current position in the flow eg game lobby etc
+    state: '/lobby' // current position in the flow eg game lobby etc
   }).then(() => {
     socket.emit('usernameaccepted', { uid: uid, name: data, state: '/lobby' })
   })
@@ -142,7 +247,9 @@ const PORT = process.env.PORT || 1984
 
 http.listen(PORT, () => {
   console.log('Listening on: ' + PORT)
-  if (process.argv.includes('test')) { test() }
+  if (process.argv.includes('test')) {
+    test()
+  }
 })
 
 function test () {

@@ -1,0 +1,46 @@
+{
+  "test": "hi",
+  "users": {
+    "UID1234567890": {
+      "UID": "UID1234567890",
+      "name": "noodle",
+      "currentSocket": "",
+      "state": "lobby"
+    }
+  },
+  "gameDisplayInfo": {
+    "GID1234567890": {
+      "name": "Game Room",
+      "ownerID": "UID1234567890",
+      "playerCount": 4,
+      "maxPlayers": 9
+    }
+  },
+  "gameStates": {
+    "GID1234567890": {
+      "spectators": [
+
+      ],
+      "whiteCardsData": {
+        "UIDxxx": {
+          "inventory": [],
+          "played": []
+        }
+      },
+      "gameplayInfo": {
+        "round": 0,
+        "maxRounds": 12,
+        "creatorUID": "UIDxxx",
+        "playedCards": 0,
+        "state": "not started",
+        "players": {
+          "UIDxxx": {
+            "name": "Adam",
+            "points": 0,
+            "hasPlayed": false
+          }
+        }
+      }
+    }
+  }
+}

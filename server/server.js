@@ -1,13 +1,12 @@
 console.log('Server Starting')
 
-require('@google-cloud/debug-agent').start({ serviceContext: { enableCanary: false } })
-
 var origin
 if (process.env.buildmode !== 'production') {
   console.log('Currently running on beta branch')
   origin = 'http://localhost:8080'
 } else {
   console.log('Current Build: #' + process.env.GAE_VERSION)
+  require('@google-cloud/debug-agent').start({ serviceContext: { enableCanary: false } })
   origin = 'https://cards.adamhodgkinson.dev'
 }
 const blackCards = require('./../data/black.json')
@@ -97,7 +96,8 @@ function logout (data) {
 }
 
 // eslint-disable-next-line no-unused-vars
-function removePlayerFromGame (uid, gid) {
+function removePlayerFromGame (uid, gid, socket) {
+  socket.leave(gid)
 // todo implement player removing
 }
 
@@ -110,7 +110,11 @@ function arriveAtGamePage (data, socket) {
       database.ref('users/' + data.uid + '/state').get().then((usersnap) => {
         if (!usersnap.exists()) {
           socket.emit('returningsessioninvalid')
-        } else if (gamesnap.val().gameplayInfo.players && (Object.keys(gamesnap.val().gameplayInfo.players).includes(data.uid) || gamesnap.val().spectators.includes(data.uid))) { // if user is already in game, or spectator
+          return
+        }
+        socket.join(data.gid)
+
+        if ((gamesnap.val().players && Object.keys(gamesnap.val().players).includes(data.uid)) || (gamesnap.val().spectators && gamesnap.val().spectators.includes(data.uid))) { // if user is already in game, or spectator
           // do nothing?
           // fixme hide player uids when sending
           //  or add a secret key for a uid that is checked at start of every call
@@ -120,9 +124,16 @@ function arriveAtGamePage (data, socket) {
           }
         } else {
           if (usersnap.val().includes('game')) { // if already in a game
-            removePlayerFromGame()
+            removePlayerFromGame(data.uid, data.gid, socket)
           }
           joinPlayerToGame(data.uid, data.gid)
+          // socket.emit('sendallgamedata', gamesnap.val().gameplayInfo)
+          // socket.emit('sendplayerwhitecards', gamesnap.val().whiteCardsData[data.uid].inventory)
+          /* const players = []
+          for (let i = 0; Object.keys(gamesnap.val().players).length; i++) {
+            players.push(gamesnap.val().players[Object.keys(gamesnap.val().players)[i]])
+          } */
+          // socket.emit('playerlist', players)
         }
       })
     }
@@ -155,6 +166,23 @@ function attemptCreateGame (data, socket) {
       console.log()
       const id = createGame(data.title, data.maxPlayers, data.uid, data.maxRounds, data.isPrivate, data.ownerName)
       socket.emit('gamecreatedsuccess', id)
+
+      database.ref('gameStates/' + id + '/gameplayInfo').on('value', (snap) => {
+        global.gc()
+        console.log('game info update')
+        io.to(id).emit('sendallgamedata', snap.val())
+      })
+
+      database.ref('gameStates/' + id + '/players').on('value', (snap) => {
+        global.gc()
+        console.log('players update')
+        const players = []
+        if (!snap.exists()) return
+        for (let i = 0; i < Object.keys(snap.val()).length; i++) {
+          players.push(snap.val()[Object.keys(snap.val())[i]])
+        }
+        io.to(id).emit('playerlist', players)
+      })
     }
   })
 }
@@ -184,10 +212,9 @@ function createGame (name, maxPlayer, owner, maxRounds, isPrivate, ownerName) {
       maxRounds: maxRounds,
       creatorUID: owner,
       playedCards: 0,
-      state: 'not started',
-      players: {
-      }
-    }
+      state: 'not started'
+    },
+    players: {}
   }
   database.ref('gameDisplayInfo/' + id).set(display)
   database.ref('gameStates/' + id).set(gameState)

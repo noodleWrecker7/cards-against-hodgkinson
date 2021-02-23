@@ -31,5 +31,11 @@ export default {
   socket_sendallgamedata (context, data) {
     console.log('gamedata')
     console.log(data)
+    context.commit('setGameData', data)
+  },
+
+  socket_playerlist (context, data) {
+    console.log(data)
+    context.commit('setPlayerList', data)
   }
 }

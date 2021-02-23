@@ -7,5 +7,6 @@ export default {
   lobbyList: {
 
   },
-  gameData: {}
+  gameData: {},
+  playerList: []
 }

@@ -32,13 +32,13 @@
         "maxRounds": 12,
         "creatorUID": "UIDxxx",
         "playedCards": 0,
-        "state": "not started",
-        "players": {
-          "UIDxxx": {
-            "name": "Adam",
-            "points": 0,
-            "hasPlayed": false
-          }
+        "state": "not started"
+      },
+      "players": {
+        "UIDxxx": {
+          "name": "Adam",
+          "points": 0,
+          "hasPlayed": false
         }
       }
     }

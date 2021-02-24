@@ -15,7 +15,7 @@
       <router-link to="/game">Game</router-link>
 
     </div>
-    <router-view/>
+    <router-view class="router-view"/>
   </div>
 </template>
 
@@ -24,17 +24,24 @@ export default {
   name: 'app',
   methods: {
     logout () {
-      this.$socket.client.emit('logout', this.$store.state.UID)
+      this.$socket.client.emit('logout', { uid: this.$store.state.UID })
       this.$store.dispatch('logOut')
       this.$router.push('/')
     }
   },
   sockets: {
+    secretnotmatch () {
+      console.error('Secret rejected by server')
+    },
     returningsessionaccepted (data) {
       // set username
       // set logged in
       this.$store.dispatch('logIn', { name: data.name, uid: this.$store.state.UID })
       // go to state
+      if (this.$route.fullPath === data.state) {
+        console.log('route same')
+        return
+      }
       if (data.state.includes('lobby')) {
         this.$router.replace(data.state)
       } else {
@@ -53,6 +60,9 @@ export default {
 </script>
 
 <style>
+.router-view {
+  flex-grow: 1;
+}
 #logout-button {
   float: right;
 }
@@ -67,6 +77,9 @@ export default {
   -moz-osx-font-smoothing: grayscale;
   text-align: center;
   color: #2c3e50;
+  height: 100vh;
+  display: flex;
+  flex-flow: column nowrap;
 }
 
 #nav {

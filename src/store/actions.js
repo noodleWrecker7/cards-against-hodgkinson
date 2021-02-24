@@ -4,13 +4,14 @@ export default {
     console.log(data)
     context.commit('setVersionName', data)
     if (context.state.UID) {
-      this._vm.$socket.client.emit('returningsession', context.state.UID)
+      this._vm.$socket.client.emit('returningsession', { uid: context.state.UID })
     }
   },
   logOut (context) {
     context.commit('setLoggedIn', false)
     context.commit('setUsername', '')
     context.commit('setUID', '')
+    context.commit('setSecret', '')
   },
   logIn (context, data) {
     context.commit('setLoggedIn', true)
@@ -28,7 +29,7 @@ export default {
   socket_sendplayerwhitecards (context, data) {
 
   },
-  socket_sendallgamedata (context, data) {
+  socket_sendgameinfo (context, data) {
     console.log('gamedata')
     console.log(data)
     context.commit('setGameData', data)

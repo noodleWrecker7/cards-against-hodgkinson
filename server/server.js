@@ -1,5 +1,5 @@
 console.log('Server Starting')
-
+console.time('Started server in')
 var origin
 if (process.env.buildmode !== 'production') {
   console.log('Currently running on beta branch')
@@ -9,12 +9,15 @@ if (process.env.buildmode !== 'production') {
   require('@google-cloud/debug-agent').start({ serviceContext: { enableCanary: false } })
   origin = 'https://cards.adamhodgkinson.dev'
 }
+console.time('Loaded black cards in')
 const blackCards = require('./../data/black.json')
 const blackCardsLength = blackCards.length
-console.log('Loaded %s black cards', blackCardsLength)
+console.timeEnd('Loaded black cards in')
+
+console.time('Loaded white cards in')
 const whiteCards = require('./../data/white.json')
 const whiteCardsLength = whiteCards.length
-console.log('Loaded %s white cards', whiteCardsLength)
+console.timeEnd('Loaded white cards in')
 
 // eslint-disable-next-line no-unused-vars
 function getBlackCard () {
@@ -51,10 +54,14 @@ const firebaseConfig = require('./../firebaseauth.json')
 firebase.initializeApp(firebaseConfig)
 
 var database = firebase.database()
+database.ref('users').on('value', function () {
+// to keep the data cached
+})
 
 io.on('connection', function (socket) {
   // handle sockets
   console.log('connection received')
+  console.log(socket.handshake.auth)
 
   socket.emit('welcometoserver', process.env.GAE_VERSION ? process.env.GAE_VERSION : 'Beta')
 
@@ -63,41 +70,95 @@ io.on('connection', function (socket) {
   })
 
   socket.on('returningsession', function (data) {
-    returningsession(data, socket)
+    console.time('returningsession ' + data.uid)
+    authenticateMessage(data.uid, socket.handshake.auth.token, socket).then(() => {
+      returningsession(data.uid, socket)
+    }).catch(() => {
+    })
+    console.timeEnd('returningsession ' + data.uid)
   })
 
   socket.on('requestlobbies', function (data) {
+    console.log(socket.handshake.auth)
     requestlobbies(data, socket)
   })
 
   socket.on('creategame', function (data) {
-    attemptCreateGame(data, socket)
+    console.time('creategame by ' + data.uid)
+    authenticateMessage(data.uid, socket.handshake.auth.token, socket).then(() => {
+      attemptCreateGame(data, socket)
+    }).catch(() => {
+    })
+    console.timeEnd('creategame by ' + data.uid)
   })
 
   socket.on('arriveatgamepage', function (data) {
     arriveAtGamePage(data, socket)
   })
 
-  socket.on('logout', logout)
-}
-)
+  socket.on('startgame', function (data) {
+    console.time('startgame by ' + data.uid)
+    authenticateMessage(data.uid, socket.handshake.auth.token, socket).then(() => {
+      startGame(data.gid, data.uid)
+    }).catch(() => {
+    })
+    console.timeEnd('startgame by ' + data.uid)
+  })
 
-function logout (data) {
-  database.ref('users/' + data + '/state').get().then((snap) => {
+  socket.on('logout', async function (data) {
+    console.time('logout ' + data.uid)
+    authenticateMessage(data.uid, socket.handshake.auth.token, socket).then(() => {
+      logout(data.uid, socket)
+    }).catch(() => {
+      // todo error handle
+      //  - remove user from any active games
+    })
+    console.timeEnd('logout ' + data.uid)
+  })
+})
+
+function startGame (uid, gid) {
+  database.ref()
+}
+
+function authenticateMessage (uid, secret, socket) {
+  console.time('authenticating ' + uid)
+  database.ref('users/' + uid + '/lastSeen').set(Date.now())
+  return new Promise((resolve, reject) => {
+    database.ref('users/' + uid + '/secret').once('value', (snap) => {
+      console.timeEnd('authenticating ' + uid)
+      if (secret === snap.val()) {
+        resolve()
+      } else {
+        socket.emit('secretnotmatch')
+        reject(new Error('secretnotmatch'))
+      }
+    }).catch((reason) => {
+      console.log(reason)
+      console.timeEnd('authenticating ' + uid)
+      reject(new Error('usernotfound'))
+    })
+  })
+}
+
+function logout (uid, socket) {
+  database.ref('users/' + uid + '/state').get().then((snap) => {
     if (!snap.exists()) return
     const state = snap.val()
     if (state.includes('GID')) {
       console.log('logged out user has game')
-      const gid = state.substring(state.indexOf('GID'))
-      removePlayerFromGame(data, gid)
+      const gid = state.substring(state.indexOf('GID') + 3)
+      removePlayerFromGame(uid, gid, socket)
     }
   })
-  database.ref('users/' + data).remove()
+  database.ref('users/' + uid).remove()
 }
 
 // eslint-disable-next-line no-unused-vars
 function removePlayerFromGame (uid, gid, socket) {
-  socket.leave(gid)
+  if (socket) {
+    socket.leave(gid)
+  }
 // todo implement player removing
 }
 
@@ -108,35 +169,31 @@ function arriveAtGamePage (data, socket) {
       socket.emit('gamenotfound')
     } else {
       database.ref('users/' + data.uid + '/state').get().then((usersnap) => {
-        if (!usersnap.exists()) {
+        if (!usersnap.exists()) { // no user
           socket.emit('returningsessioninvalid')
           return
         }
-        socket.join(data.gid)
+        socket.join(data.gid) // join to game channel for socket emissions
 
-        if ((gamesnap.val().players && Object.keys(gamesnap.val().players).includes(data.uid)) || (gamesnap.val().spectators && gamesnap.val().spectators.includes(data.uid))) { // if user is already in game, or spectator
-          // do nothing?
-          // fixme hide player uids when sending
-          //  or add a secret key for a uid that is checked at start of every call
-          socket.emit('sendallgamedata', gamesnap.val().gameplayInfo)
-          if (Object.keys(gamesnap.val().whiteCardsData).includes(data.uid)) {
-            socket.emit('sendplayerwhitecards', gamesnap.val().whiteCardsData[data.uid].inventory)
-          }
-        } else {
-          if (usersnap.val().includes('game')) { // if already in a game
-            removePlayerFromGame(data.uid, data.gid, socket)
-          }
-          joinPlayerToGame(data.uid, data.gid)
-          // socket.emit('sendallgamedata', gamesnap.val().gameplayInfo)
-          // socket.emit('sendplayerwhitecards', gamesnap.val().whiteCardsData[data.uid].inventory)
-          /* const players = []
-          for (let i = 0; Object.keys(gamesnap.val().players).length; i++) {
-            players.push(gamesnap.val().players[Object.keys(gamesnap.val().players)[i]])
-          } */
-          // socket.emit('playerlist', players)
+        if (gamesnap.val().whiteCardsData && gamesnap.val().whiteCardsData[data.uid]) {
+          socket.emit('sendplayerwhitecards', gamesnap.val().whiteCardsData[data.uid])
         }
+
+        if (usersnap.val().includes('game')) { // if already in a game
+          removePlayerFromGame(data.uid, data.gid, socket)
+        }
+        joinPlayerToGame(data.uid, data.gid)
+
+        sendData('sendgameinfo', 'gameStates/' + data.gid + '/gameplayInfo', socket)
+        sendData('playerlist', 'gameStates/' + data.gid + '/players', socket)
       })
     }
+  })
+}
+
+function sendData (message, ref, socket) {
+  database.ref(ref).once('value').then((snap) => {
+    socket.emit(message, snap.val())
   })
 }
 
@@ -151,39 +208,24 @@ function joinPlayerToGame (uid, gid) {
     database.ref('gameStates/' + gid + '/players').get().then((gsnap) => {
       database.ref('gameDisplayInfo/' + gid + '/playerCount').set(Object.keys(gsnap.val()).length)
     })
-    database.ref('users/' + uid + '/state').set('game/' + gid)
+    database.ref('users/' + uid + '/state').set('/game/' + gid)
   })
 }
 
 function attemptCreateGame (data, socket) {
   console.log('requested to make game')
-  database.ref('users/' + data.uid + '/currentSocket').once('value', (snap) => {
-    if (!snap.exists()) {
-      socket.emit('returningsessioninvalid')
-      return
-    }
-    if (snap.val() === socket.id) {
-      console.log()
-      const id = createGame(data.title, data.maxPlayers, data.uid, data.maxRounds, data.isPrivate, data.ownerName)
-      socket.emit('gamecreatedsuccess', id)
+  console.log()
+  const id = createGame(data.title, data.maxPlayers, data.uid, data.maxRounds, data.isPrivate, data.ownerName)
+  socket.emit('gamecreatedsuccess', id)
 
-      database.ref('gameStates/' + id + '/gameplayInfo').on('value', (snap) => {
-        global.gc()
-        console.log('game info update')
-        io.to(id).emit('sendallgamedata', snap.val())
-      })
+  database.ref('gameStates/' + id + '/gameplayInfo').on('value', (snap) => {
+    console.log('game info update')
+    io.to(id).emit('sendgameinfo', snap.val())
+  })
 
-      database.ref('gameStates/' + id + '/players').on('value', (snap) => {
-        global.gc()
-        console.log('players update')
-        const players = []
-        if (!snap.exists()) return
-        for (let i = 0; i < Object.keys(snap.val()).length; i++) {
-          players.push(snap.val()[Object.keys(snap.val())[i]])
-        }
-        io.to(id).emit('playerlist', players)
-      })
-    }
+  database.ref('gameStates/' + id + '/players').on('value', (snap) => {
+    console.log('players update')
+    io.to(id).emit('playerlist', snap.val())
   })
 }
 
@@ -221,15 +263,19 @@ function createGame (name, maxPlayer, owner, maxRounds, isPrivate, ownerName) {
   return id
 }
 
-function returningsession (data, socket) {
-  database.ref('users/' + data).once('value', (snap) => {
+// todo use a secret key that the user must provide to authenticate themselves
+//  then either check that every time they do something
+//  or check their socket every time but only let them change the socket with the key
+//  i think the first is better bc theres no need to store/update/pass the socketid around - a key shouldnt change too
+function returningsession (uid, socket) {
+  database.ref('users/' + uid).once('value', (snap) => {
     if (!snap.exists()) {
       socket.emit('returningsessioninvalid')
     } else {
       const val = snap.val()
       socket.emit('returningsessionaccepted', { name: val.name, state: val.state })
       const updates = { currentSocket: socket.id }
-      database.ref('users/' + data).update(updates)
+      database.ref('users/' + uid).update(updates)
     }
   })
 }
@@ -245,20 +291,22 @@ function applyforusername (data, socket) {
       socket.emit('usernameunavailable', data)
     } else { */
   const uid = 'UID' + generateID()
+  const secret = 'SEC' + generateID()
   database.ref('users/' + uid).set({
     UID: uid,
     name: data,
     currentSocket: socket.id,
+    secret: secret,
     state: '/lobby' // current position in the flow eg game lobby etc
   }).then(() => {
-    socket.emit('usernameaccepted', { uid: uid, name: data, state: '/lobby' })
+    socket.emit('usernameaccepted', { uid: uid, name: data, state: '/lobby', secret: secret })
   })
   // }
   // })
 }
 
 function generateID () {
-  const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz1234567890!£%^*()'
+  const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz1234567890!£^*()'
   let str = (new Date()).toTimeString().substr(0, 8).replace(/:/g, '')
   for (let i = 0; i < 4; i++) {
     str += chars.charAt(Math.floor(Math.random() * chars.length))
@@ -277,6 +325,12 @@ http.listen(PORT, () => {
   if (process.argv.includes('test')) {
     test()
   }
+  console.time('Registered Listeners in')
+  registerListeners()
+  console.timeEnd('Registered Listeners in')
+  clearInactiveUsers()
+  setInterval(clearInactiveUsers, 3600000)
+  console.timeEnd('Started server in')
 })
 
 function test () {
@@ -301,4 +355,34 @@ function escapeHtml (unsafe) {
     .replace(/>/g, '&gt;')
     .replace(/"/g, '&quot;')
     .replace(/'/g, '&#039;')
+}
+
+function clearInactiveUsers () {
+  // 1800000
+  const cutoff = Date.now() - 1800000 // 30 mins ago
+  database.ref('users').orderByChild('lastSeen').endBefore(cutoff).once('value').then((snap) => {
+    logout(snap.key)
+  })
+}
+
+function registerListeners () {
+  database.ref('gameStates').on('child_added', (snap) => {
+    const id = snap.key
+    database.ref('gameStates/' + id + '/gameplayInfo').on('value', (snap) => {
+      console.log('game info update')
+      io.to(id).emit('sendgameinfo', snap.val())
+    })
+
+    database.ref('gameStates/' + id + '/players').on('value', (snap) => {
+      console.log('players update')
+      io.to(id).emit('playerlist', snap.val())
+    })
+  })
+
+  database.ref('gameStates').on('child_removed', (snap) => {
+    const id = snap.key
+    database.ref('gameStates/' + id + '/gameplayInfo').off('value')
+
+    database.ref('gameStates/' + id + '/players').off('value')
+  })
 }

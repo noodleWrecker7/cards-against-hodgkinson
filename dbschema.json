@@ -5,7 +5,9 @@
       "UID": "UID1234567890",
       "name": "noodle",
       "currentSocket": "",
-      "state": "lobby"
+      "secret": "xxxxxxx",
+      "state": "lobby",
+      "lastSeen": "0"
     }
   },
   "gameDisplayInfo": {

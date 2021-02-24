@@ -3,10 +3,12 @@ export default {
   userName: 'Adam',
   UID: '',
   GID: '',
+  secret: '',
   loggedIn: true,
   lobbyList: {
 
   },
   gameData: {},
-  playerList: []
+  playerList: {},
+  isOwner: true
 }

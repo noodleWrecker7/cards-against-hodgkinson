@@ -24,5 +24,8 @@ export default {
   },
   setPlayerList (state, data) {
     state.playerList = data
+  },
+  setSecret (state, data) {
+    state.secret = data
   }
 }

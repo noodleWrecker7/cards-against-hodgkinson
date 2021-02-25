@@ -5,7 +5,7 @@ console.time('Started server in')
 var origin
 if (process.env.buildmode !== 'production') {
   console.log('Currently running on beta branch')
-  origin = 'http://localhost:8080'
+  origin = '*'
 } else {
   console.log('Current Build: #' + process.env.GAE_VERSION)
   require('@google-cloud/debug-agent').start({ serviceContext: { enableCanary: false } })
@@ -88,7 +88,7 @@ io.on('connection', function (socket) {
 
   socket.on('returningsession', function (data) {
     console.time('returningsession ' + data.uid)
-    authenticateMessage(data.uid, socket.handshake.auth.token, socket).then(() => {
+    handleCall(data.uid, socket).then(() => {
       returningsession(data.uid, socket)
     })
     console.timeEnd('returningsession ' + data.uid)
@@ -220,7 +220,10 @@ function dealCards (gid) {
       const updates = {}
       for (let i = 0; i < keys.length; i++) { // for each user
         console.log('handling user')
-        const len = whites[keys[i]].inventory ? Object.keys(whites[keys[i]].inventory).length : 0 // how many cards already have
+        let len
+        try { len = Object.keys(whites[keys[i]].inventory).length } catch (e) {
+          len = 0
+        }
         const cardsToAdd = MAX_WHITE_CARDS - len // how many cards need adding
         console.log({ cardsToAdd })
 
@@ -256,6 +259,9 @@ function authenticateMessage (uid, secret) {
   return new Promise((resolve, reject) => {
     database.ref('users/' + uid + '/secret').once('value', (snap) => {
       console.timeEnd('authenticating ' + uid)
+      if (!snap.exists()) {
+        reject(new Error('usernotfound'))
+      }
       if (secret === snap.val()) {
         resolve()
       } else {
@@ -277,7 +283,7 @@ function logout (uid, socket) {
     const state = snap.val()
     if (state.includes('GID')) {
       console.log('logged out user has game')
-      const gid = state.substring(state.indexOf('GID') + 3)
+      const gid = state.substring(state.indexOf('GID'), 13)
       removePlayerFromGame(uid, gid, socket)
     }
   })
@@ -306,12 +312,15 @@ function arriveAtGamePage (data, socket) {
           return
         }
         socket.join(data.gid) // join to game channel for socket emissions
-
+        const g = data.gid
+        console.log({ g })
+        console.log(socket.rooms)
         if (gamesnap.val().whiteCardsData && gamesnap.val().whiteCardsData[data.uid]) {
           socket.emit('sendplayerwhitecards', gamesnap.val().whiteCardsData[data.uid].inventory)
         }
 
-        if (usersnap.val().includes('game')) { // if already in a game
+        if (usersnap.val().includes('game') && usersnap.val().substr(usersnap.val().indexOf('GID'), 13) !== data.gid) { // if already in a game
+          console.log('removing')
           removePlayerFromGame(data.uid, data.gid, socket)
         }
         joinPlayerToGame(data.uid, data.gid)
@@ -511,6 +520,7 @@ function registerListeners () {
     const id = snap.key
     database.ref('gameStates/' + id + '/gameplayInfo').on('value', (snap) => {
       console.log('game info update')
+      console.log({ id })
       io.to(id).emit('sendgameinfo', snap.val())
     })
 

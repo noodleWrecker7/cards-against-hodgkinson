@@ -1,12 +1,12 @@
 <template>
-<div class="card-itself"><p class="black-card-text">{{cardtext}}</p></div>
+<div class="card-itself"><p class="black-card-text">{{carddata.text}}</p> <p class="pack-name">{{carddata.pack}}</p></div>
 </template>
 
 <script>
 export default {
   name: 'blackcard',
   props: [
-    'cardtext'
+    'carddata'
   ]
 }
 </script>

@@ -41,7 +41,8 @@ export default {
   },
   socket_setstate (context, data) {
     if (context.state.state !== data) {
-      this._vm.$router.go(data)
+      // this._vm.$router.go(data)
+      // this.$router.go(data)
     }
     context.commit('setState', data)
   },

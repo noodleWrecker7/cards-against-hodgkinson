@@ -8,7 +8,7 @@
     <div id="game-container">
       <div id="left-section">
         <div id="black-card-container">
-          <blackcard cardtext="Question?"/>
+          <blackcard :carddata="gameData.blackCard"/>
           <button>Submit answer</button>
         </div>
         <div id="player-list-container">

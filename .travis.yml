@@ -13,6 +13,7 @@ deploy:
     project: cardsagainsthodgkinson
     version: "$TRAVIS_BUILD_NUMBER"
     cleanup: false
+    skip_cleanup: true
     promote: true
     on:
       branch: master
@@ -21,6 +22,8 @@ deploy:
     project: cardsagainsthodgkinson
     version: "$TRAVIS_BUILD_NUMBER"
     cleanup: false
+    skip_cleanup: true
     promote: false
+    no_promote: true
     on:
       branch: beta

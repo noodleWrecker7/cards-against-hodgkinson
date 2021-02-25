@@ -1,5 +1,7 @@
 console.log('Server Starting')
 console.time('Started server in')
+
+// Setting origin header
 var origin
 if (process.env.buildmode !== 'production') {
   console.log('Currently running on beta branch')
@@ -9,6 +11,8 @@ if (process.env.buildmode !== 'production') {
   require('@google-cloud/debug-agent').start({ serviceContext: { enableCanary: false } })
   origin = 'https://cards.adamhodgkinson.dev'
 }
+
+// Loading cards
 console.time('Loaded black cards in')
 const blackCards = require('./../data/black.json')
 const blackCardsLength = blackCards.length
@@ -33,6 +37,8 @@ function getWhiteCard () {
   return whiteCards[r]
 }
 
+// Starting request handler
+const PORT = process.env.PORT || 1984
 var app = require('express')()
 var http = require('http').Server(app)
 var io = require('socket.io')(http, {
@@ -45,6 +51,14 @@ var io = require('socket.io')(http, {
   }
 })
 
+// Setup rate limiter
+const { RateLimiterMemory } = require('rate-limiter-flexible')
+const RATE_LIMITER = new RateLimiterMemory({
+  points: 10,
+  duration: 1 // per sec
+})
+
+// Starting firebase connection
 var firebase = require('firebase/app')
 
 require('firebase/auth')
@@ -52,14 +66,15 @@ require('firebase/database')
 
 const firebaseConfig = require('./../firebaseauth.json')
 
-// Initialize Firebase
 firebase.initializeApp(firebaseConfig)
-
 var database = firebase.database()
+
+// Caching some firebase routes
 database.ref('users').on('value', function () {
 // to keep the data cached
 })
 
+// Socket.io conns
 io.on('connection', function (socket) {
   // handle sockets
   console.log('connection received')
@@ -75,14 +90,24 @@ io.on('connection', function (socket) {
     console.time('returningsession ' + data.uid)
     authenticateMessage(data.uid, socket.handshake.auth.token, socket).then(() => {
       returningsession(data.uid, socket)
-    }).catch(() => {
     })
     console.timeEnd('returningsession ' + data.uid)
   })
 
-  socket.on('requestlobbies', function (data) {
-    console.log(socket.handshake.auth)
-    requestlobbies(data, socket)
+  socket.on('requestlobbies', function (data, callback) {
+    // console.log(socket.handshake.auth)
+    /* RATE_LIMITER.consume(socket.handshake.auth).then(() => {
+      requestlobbies(data, callback)
+    }).catch((err) => {
+      callback({ error: 'rate limit' })
+      console.log(err)
+    }) */
+
+    handleCall(data.uid, socket).then(() => {
+      requestlobbies(data, callback)
+    }).catch((err) => {
+      callback({ error: err.message })
+    })
   })
 
   socket.on('creategame', function (data) {
@@ -95,7 +120,11 @@ io.on('connection', function (socket) {
   })
 
   socket.on('arriveatgamepage', function (data) {
-    arriveAtGamePage(data, socket)
+    console.time('arrive game')
+    handleCall(data.uid, socket).then(() => {
+      arriveAtGamePage(data, socket)
+    })
+    console.timeEnd('arrive game')
   })
 
   socket.on('startgame', function (data) {
@@ -117,7 +146,49 @@ io.on('connection', function (socket) {
     })
     console.timeEnd('logout ' + data.uid)
   })
+
+  socket.on('requestwhitecards', function (data, callback) {
+    handleCall(data.uid, socket).then(() => {
+      requestWhiteCards(data).then((data) => {
+        callback({ error: null, data: data })
+      }).catch((err) => {
+        callback({ error: err.message })
+      })
+    })
+  })
 })
+
+// Spaghetti:
+
+function requestWhiteCards (data) {
+  return new Promise((resolve, reject) => {
+    database.ref('/gameStates/' + data.gid + '/whiteCardsData/' + data.uid + '/inventory').once('value').then((snap) => {
+      if (snap.exists()) {
+        resolve(snap.val())
+      } else {
+        reject(new Error('no card data'))
+      }
+    })
+  })
+}
+
+function handleCall (uid, socket) {
+  return new Promise((resolve, reject) => {
+    RATE_LIMITER.consume(socket.handshake.auth.token).then(() => {
+      authenticateMessage(uid, socket.handshake.auth.token).then(() => {
+        resolve()
+      }).catch((err) => {
+        if (err.message === 'secretnotmatch') {
+          socket.emit('secretnotmatch')
+        } else if (err.message === 'usernotfound') {
+          socket.emit('returningsessioninvalid')
+        }
+      })
+    }).catch(() => {
+      reject(new Error('rate limit'))
+    })
+  })
+}
 
 function startGame (uid, gid, socket) {
   database.ref('gameStates/' + gid + '/gameplayInfo/creatorUID').once('value').then((snap) => {
@@ -179,7 +250,7 @@ function progressGame (gid) {
   })
 }
 
-function authenticateMessage (uid, secret, socket) {
+function authenticateMessage (uid, secret) {
   console.time('authenticating ' + uid)
   database.ref('users/' + uid + '/lastSeen').set(Date.now())
   return new Promise((resolve, reject) => {
@@ -188,7 +259,8 @@ function authenticateMessage (uid, secret, socket) {
       if (secret === snap.val()) {
         resolve()
       } else {
-        socket.emit('secretnotmatch')
+        const v = snap.val()
+        console.log({ secret, v })
         reject(new Error('secretnotmatch'))
       }
     }).catch((reason) => {
@@ -236,16 +308,16 @@ function arriveAtGamePage (data, socket) {
         socket.join(data.gid) // join to game channel for socket emissions
 
         if (gamesnap.val().whiteCardsData && gamesnap.val().whiteCardsData[data.uid]) {
-          socket.emit('sendplayerwhitecards', gamesnap.val().whiteCardsData[data.uid])
+          socket.emit('sendplayerwhitecards', gamesnap.val().whiteCardsData[data.uid].inventory)
         }
 
         if (usersnap.val().includes('game')) { // if already in a game
           removePlayerFromGame(data.uid, data.gid, socket)
         }
         joinPlayerToGame(data.uid, data.gid)
-
         sendData('sendgameinfo', 'gameStates/' + data.gid + '/gameplayInfo', socket)
-        sendData('playerlist', 'gameStates/' + data.gid + '/players', socket)
+        sendData('setstate', 'users/' + data.uid + '/state', socket)
+        // sendData('playerlist', 'gameStates/' + data.gid + '/players', socket)
       })
     }
   })
@@ -268,7 +340,8 @@ function joinPlayerToGame (uid, gid) {
     database.ref('gameStates/' + gid + '/players').get().then((gsnap) => {
       database.ref('gameDisplayInfo/' + gid + '/playerCount').set(Object.keys(gsnap.val()).length)
     })
-    database.ref('users/' + uid + '/state').set('/game/' + gid)
+    database.ref('users/' + uid + '/state').set('/game/' + gid).then(() => {
+    })
   })
 }
 
@@ -278,7 +351,7 @@ function attemptCreateGame (data, socket) {
   const id = createGame(data.title, data.maxPlayers, data.uid, data.maxRounds, data.isPrivate, data.ownerName)
   socket.emit('gamecreatedsuccess', id)
 
-  database.ref('gameStates/' + id + '/gameplayInfo').on('value', (snap) => {
+  /* database.ref('gameStates/' + id + '/gameplayInfo').on('value', (snap) => {
     console.log('game info update')
     io.to(id).emit('sendgameinfo', snap.val())
   })
@@ -286,13 +359,14 @@ function attemptCreateGame (data, socket) {
   database.ref('gameStates/' + id + '/players').on('value', (snap) => {
     console.log('players update')
     io.to(id).emit('playerlist', snap.val())
-  })
+  }) */
 }
 
-function requestlobbies (data, socket) {
+function requestlobbies (data, response) {
   database.ref('gameDisplayInfo').orderByChild('isPrivate').equalTo(false).once('value', (snap) => {
     if (!snap.exists()) return
-    socket.emit('lobbiestoclient', snap.val())
+    // socket.emit('lobbiestoclient', snap.val())
+    response({ data: snap.val(), error: null })
   })
 }
 
@@ -381,7 +455,8 @@ app.get('/*', function (request, response) {
   console.log(request.path)
   response.send('<html lang="uk"><script>window.location.href="https://cards.adamhodgkinson.dev?apiuri=" + window.location.hostname</script></html>')
 })
-const PORT = process.env.PORT || 1984
+
+// finish and start everything
 
 http.listen(PORT, () => {
   console.log('Listening on: ' + PORT)
@@ -391,11 +466,13 @@ http.listen(PORT, () => {
   console.time('Registered Listeners in')
   registerListeners()
   console.timeEnd('Registered Listeners in')
+
   clearInactiveUsers()
   setInterval(clearInactiveUsers, 3600000)
   console.timeEnd('Started server in')
 })
 
+// Test function to run in test mode
 function test () {
   var ref = database.ref('test')
   ref.get().then(function (data) {
@@ -411,9 +488,6 @@ function test () {
     process.exit()
   })
 }
-
-module.exports.PORT = PORT
-module.exports.http = http
 
 function escapeHtml (unsafe) {
   return unsafe
@@ -441,8 +515,11 @@ function registerListeners () {
     })
 
     database.ref('gameStates/' + id + '/players').on('value', (snap) => {
-      console.log('players update')
+      /*      if (!snap.exists()) {
+      } else if (snap.val() == null) {
+      } else { */
       io.to(id).emit('playerlist', snap.val())
+      // }
     })
 
     database.ref('gameStates/' + id + '/whiteCardsData').on('value', (snap) => {

@@ -1,6 +1,10 @@
 <template>
   <div id="game-page">
-    <div id="control-bar">Controls<button v-if="$store.state.isOwner" @click="displaycontrols=!displaycontrols">{{this.displaycontrols?'Hide':'Show'}} Controls</button></div>
+    <div id="control-bar">Controls
+      <button v-if="$store.state.isOwner" @click="displaycontrols=!displaycontrols">
+        {{ this.displaycontrols ? 'Hide' : 'Show' }} Controls
+      </button>
+    </div>
     <div id="game-container">
       <div id="left-section">
         <div id="black-card-container">
@@ -28,7 +32,7 @@
     <transition name="slide">
       <div id="create-game-form" v-if="displaycontrols">
         <h3>Game Controls</h3>
-<button @click="startGame">Start</button>
+        <button @click="startGame">Start</button>
       </div>
     </transition>
   </div>
@@ -57,17 +61,21 @@ export default {
     ]
     )
   },
-  data () { return { displaycontrols: false } },
+  data () {
+    return { displaycontrols: false }
+  },
   sockets: {
     gamenotfound () {
       console.log('game no find')
-      this.$router.replace('//lobby')
+      // this.$router.replace('//lobby')
     }
+
   },
   mounted () {
     if (!this.$store.state.loggedIn) {
       this.$router.push('/')
     }
+    console.log(this.$route.fullPath)
     console.log(this.gameID)
     this.$store.dispatch('setGID', this.gameID)
     this.$socket.client.emit('arriveatgamepage', { uid: this.$store.state.UID, gid: this.gameID })
@@ -76,7 +84,7 @@ export default {
 </script>
 
 <style scoped>
-#create-game-form{
+#create-game-form {
   position: fixed;
   background-color: whitesmoke;
   width: 30%;
@@ -91,10 +99,12 @@ export default {
   box-sizing: border-box;
   bottom: 10%;
 }
-#game-page{
+
+#game-page {
   display: flex;
   flex-flow: column;
 }
+
 #game-container {
   display: flex;
   flex-flow: row nowrap;
@@ -143,6 +153,7 @@ export default {
 #control-bar {
   background-color: grey;
 }
+
 .slide-item {
   display: inline-block;
   margin-right: 10px;

@@ -10,5 +10,7 @@ export default {
   },
   gameData: {},
   playerList: {},
-  isOwner: true
+  isOwner: true,
+  state: '/lobby',
+  playerWhiteCards: []
 }

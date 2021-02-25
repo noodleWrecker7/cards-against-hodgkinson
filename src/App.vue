@@ -42,10 +42,9 @@ export default {
         console.log('route same')
         return
       }
-      if (data.state.includes('lobby')) {
-        this.$router.replace(data.state)
-      } else {
-        this.$router.replace('/' + data.state)
+      this.$store.dispatch('socket_setstate', data.state)
+      if (this.$route.fullPath !== data.state) {
+        this.$router.go(data.state)
       }
     },
     returningsessioninvalid () {

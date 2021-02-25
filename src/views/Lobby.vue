@@ -72,7 +72,14 @@ export default {
       this.displaymodal = !this.displaymodal
     },
     refreshLobbies () {
-      this.$socket.client.emit('requestlobbies')
+      this.$socket.client.emit('requestlobbies', { uid: this.$store.state.UID }, (response) => {
+        console.log('lobbies recieve')
+        if (!response.error) {
+          this.$store.commit('setLobbiesList', response.data)
+        } else if (response.error === 'rate limit') {
+          alert('You are doing that too fast\nPlease slow down')
+        }
+      })
     }
   },
   mounted () {

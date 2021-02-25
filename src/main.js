@@ -18,11 +18,14 @@ const customURI = new URLSearchParams(location.search).get('apiuri')
 if (customURI) {
   api = customURI
 }
-const socket = io(api)
-
+const socket = io(api, {
+  auth: {
+    token: ''
+  }
+})
 Vue.use(VueSocketIOExt, socket, { store })
 
-new Vue({
+const v = new Vue({
   router,
   store,
   render: h => h(App),
@@ -30,3 +33,6 @@ new Vue({
 
   }
 }).$mount('#app')
+
+console.log('hi')
+socket.auth.token = v.$store.state.secret

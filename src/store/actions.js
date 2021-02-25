@@ -4,14 +4,14 @@ export default {
     console.log(data)
     context.commit('setVersionName', data)
     if (context.state.UID) {
-      this._vm.$socket.client.emit('returningsession', context.state.UID)
+      this._vm.$socket.client.emit('returningsession', { uid: context.state.UID })
     }
-    // todo - if hasUsername {be that user/alert server get where should be etc}
   },
   logOut (context) {
     context.commit('setLoggedIn', false)
     context.commit('setUsername', '')
     context.commit('setUID', '')
+    context.commit('setSecret', '')
   },
   logIn (context, data) {
     context.commit('setLoggedIn', true)
@@ -22,5 +22,21 @@ export default {
   socket_lobbiestoclient (context, data) {
     console.log('lobbies recieve')
     context.commit('setLobbiesList', data)
+  },
+  setGID (context, data) {
+    context.commit('setGID', data)
+  },
+  socket_sendplayerwhitecards (context, data) {
+
+  },
+  socket_sendgameinfo (context, data) {
+    console.log('gamedata')
+    console.log(data)
+    context.commit('setGameData', data)
+  },
+
+  socket_playerlist (context, data) {
+    console.log(data)
+    context.commit('setPlayerList', data)
   }
 }

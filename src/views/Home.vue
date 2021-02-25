@@ -18,7 +18,8 @@ export default {
     },
     usernameaccepted (data) {
       this.$store.dispatch('logIn', data)
-      this.$router.push(data.state)
+      this.$store.commit('setSecret', data.secret)
+      window.location.reload()
     }
   },
   components: {

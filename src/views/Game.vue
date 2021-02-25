@@ -47,7 +47,7 @@ export default {
   ],
   methods: {
     startGame () {
-      this.socket.emit('startgame', { uid: this.$store.state.UID, gid: this.$store.state.GID })
+      this.$socket.client.emit('startgame', { uid: this.$store.state.UID, gid: this.$store.state.GID })
     }
   },
   computed: {
@@ -60,6 +60,7 @@ export default {
   data () { return { displaycontrols: false } },
   sockets: {
     gamenotfound () {
+      console.log('game no find')
       this.$router.replace('//lobby')
     }
   },

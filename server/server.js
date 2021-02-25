@@ -19,15 +19,17 @@ const whiteCards = require('./../data/white.json')
 const whiteCardsLength = whiteCards.length
 console.timeEnd('Loaded white cards in')
 
+const MAX_WHITE_CARDS = 7
+
 // eslint-disable-next-line no-unused-vars
 function getBlackCard () {
-  const r = Math.random() * blackCardsLength
+  const r = Math.floor(Math.random() * blackCardsLength)
   return blackCards[r]
 }
 
 // eslint-disable-next-line no-unused-vars
 function getWhiteCard () {
-  const r = Math.random() * whiteCardsLength
+  const r = Math.floor(Math.random() * whiteCardsLength)
   return whiteCards[r]
 }
 
@@ -99,7 +101,7 @@ io.on('connection', function (socket) {
   socket.on('startgame', function (data) {
     console.time('startgame by ' + data.uid)
     authenticateMessage(data.uid, socket.handshake.auth.token, socket).then(() => {
-      startGame(data.gid, data.uid)
+      startGame(data.uid, data.gid, socket)
     }).catch(() => {
     })
     console.timeEnd('startgame by ' + data.uid)
@@ -117,8 +119,64 @@ io.on('connection', function (socket) {
   })
 })
 
-function startGame (uid, gid) {
-  database.ref()
+function startGame (uid, gid, socket) {
+  database.ref('gameStates/' + gid + '/gameplayInfo/creatorUID').once('value').then((snap) => {
+    if (!snap.exists()) {
+      console.log('gamenotfound')
+      console.log(snap.val())
+      console.log(gid)
+      socket.emit('gamenotfound')
+      return
+    }
+    if (!snap.val() === uid) {
+      socket.emit('notauthorisedtoaction')
+    }
+    progressGame(gid)
+  })
+}
+
+// todo might be worth updating white cards on a per player basis when they play their cards
+function dealCards (gid) {
+  console.log('dealing')
+  database.ref('gameStates/' + gid + '/whiteCardsData').once('value').then((snap) => {
+    const whites = snap.val()
+    if (!snap.exists()) {
+      return new Error('Could not get white cards from game state')
+    }
+    database.ref('gameStates/' + gid + '/players').once('value').then((playerssnap) => {
+      console.log('players gotten')
+      const keys = Object.keys(playerssnap.val())
+      const updates = {}
+      for (let i = 0; i < keys.length; i++) { // for each user
+        console.log('handling user')
+        const len = whites[keys[i]].inventory ? Object.keys(whites[keys[i]].inventory).length : 0 // how many cards already have
+        const cardsToAdd = MAX_WHITE_CARDS - len // how many cards need adding
+        console.log({ cardsToAdd })
+
+        for (let j = 0; j < cardsToAdd; j++) {
+          const ref = 'gameStates/' + gid + '/whiteCardsData/' + keys[i] + '/inventory/'
+          updates['gameStates/' + gid + '/whiteCardsData/' + keys[i] + '/inventory/' + database.ref(ref).push().key] = getWhiteCard()
+        }
+      }
+      database.ref().update(updates) // does all updates at once
+      const card = getBlackCard()
+      console.log({ card })
+      database.ref('gameStates/' + gid + '/gameplayInfo/blackCard').set(card)
+    })
+  })
+}
+
+function progressGame (gid) {
+  database.ref('gameStates/' + gid + '/gameplayInfo/state').once('value').then((snap) => {
+    // const state = snap.val()
+    // switch (state) { // Omitted purely for testing
+    // case 'not started':
+    var updates = { state: 'players picking', round: 1 }
+    database.ref('gameStates/' + gid + '/gameplayInfo').update(updates)
+    dealCards(gid)
+    // break
+    // }
+  })
 }
 
 function authenticateMessage (uid, secret, socket) {
@@ -159,6 +217,7 @@ function removePlayerFromGame (uid, gid, socket) {
   if (socket) {
     socket.leave(gid)
   }
+  database.ref('users/' + uid + '/state').set('/lobby')
 // todo implement player removing
 }
 
@@ -167,6 +226,7 @@ function arriveAtGamePage (data, socket) {
   database.ref('gameStates/' + data.gid).get().then((gamesnap) => {
     if (!gamesnap.exists()) {
       socket.emit('gamenotfound')
+      removePlayerFromGame(data.uid, data.gid, socket)
     } else {
       database.ref('users/' + data.uid + '/state').get().then((usersnap) => {
         if (!usersnap.exists()) { // no user
@@ -250,6 +310,9 @@ function createGame (name, maxPlayer, owner, maxRounds, isPrivate, ownerName) {
       }
     },
     gameplayInfo: {
+      blackCard: {
+        text: ''
+      },
       round: 0,
       maxRounds: maxRounds,
       creatorUID: owner,
@@ -339,6 +402,10 @@ function test () {
     if (data.val() !== 'hi') {
       throw new Error('DB connection failed')
     }
+    const card = getBlackCard()
+    console.log(card)
+    database.ref('gameStates/GID1234567890/gameplayInfo/blackCard').set(card)
+
     console.log('Connected to database')
     console.log('Testing complete\n\nExiting...')
     process.exit()
@@ -376,6 +443,11 @@ function registerListeners () {
     database.ref('gameStates/' + id + '/players').on('value', (snap) => {
       console.log('players update')
       io.to(id).emit('playerlist', snap.val())
+    })
+
+    database.ref('gameStates/' + id + '/whiteCardsData').on('value', (snap) => {
+      console.log('white card update')
+      io.to(id).emit('comegetwhitecards', { gid: id })
     })
   })
 

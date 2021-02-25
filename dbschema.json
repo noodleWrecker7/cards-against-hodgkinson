@@ -30,6 +30,9 @@
         }
       },
       "gameplayInfo": {
+        "blackCard": {
+          "text": ""
+        },
         "round": 0,
         "maxRounds": 12,
         "creatorUID": "UIDxxx",

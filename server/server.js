@@ -152,7 +152,7 @@ io.on('connection', function (socket) {
 
   socket.on('requestwhitecards', function (data, callback) {
     handleCall(data.uid, socket).then(() => {
-      requestWhiteCards(data).then((data) => {
+      methods.getWhiteCards(data).then((data) => {
         callback({ error: null, data: data })
       }).catch((err) => {
         callback({ error: err.message })
@@ -162,18 +162,7 @@ io.on('connection', function (socket) {
 })
 
 // Spaghetti:
-
-function requestWhiteCards (data) {
-  return new Promise((resolve, reject) => {
-    database.ref('/gameStates/' + data.gid + '/whiteCardsData/' + data.uid + '/inventory').once('value').then((snap) => {
-      if (snap.exists()) {
-        resolve(snap.val())
-      } else {
-        reject(new Error('no card data'))
-      }
-    })
-  })
-}
+const methods = require('./socketMethods')(io, database)
 
 function handleCall (uid, socket) {
   return new Promise((resolve, reject) => {

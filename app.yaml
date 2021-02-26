@@ -6,3 +6,7 @@ automatic_scaling:
   max_pending_latency: automatic
 env_variables:
   buildmode: "production"
+network:
+  session_affinity: true
+inbound_services:
+  - warmup

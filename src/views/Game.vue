@@ -1,5 +1,5 @@
 <template>
-  <div id="game-page">
+  <div id="game-page" >
     <div id="control-bar">Controls
       <button v-if="$store.state.isOwner" @click="displaycontrols=!displaycontrols">
         {{ this.displaycontrols ? 'Hide' : 'Show' }} Controls
@@ -23,8 +23,8 @@
           <whitecard :key="x" v-for="x in 18"/>
         </div>
 
-        <div id="player-cards-container">
-          <whitecard :key="x" v-for="x in 7"/>
+        <div id="player-cards-container" v-if="gameData.round >0">
+          <whitecard @cardclicked="toggleCardSelected" :key="key" :cardKey="key" v-for="(card, key) in playerWhiteCards" :cardData="card"/>
         </div>
       </div>
     </div>
@@ -50,6 +50,14 @@ export default {
     'gameID'
   ],
   methods: {
+    toggleCardSelected (key) {
+      console.log(key)
+      if (this.selectedCards.includes(key)) {
+        this.selectedCards.splice(this.selectedCards.indexOf(key), 1)
+      } else {
+        this.selectedCards.push(key)
+      }
+    },
     startGame () {
       this.$socket.client.emit('startgame', { uid: this.$store.state.UID, gid: this.$store.state.GID })
     }
@@ -57,12 +65,13 @@ export default {
   computed: {
     ...mapState([
       'gameData',
-      'playerList'
+      'playerList',
+      'playerWhiteCards'
     ]
     )
   },
   data () {
-    return { displaycontrols: false }
+    return { displaycontrols: false, selectedCards: [] }
   },
   sockets: {
     gamenotfound () {

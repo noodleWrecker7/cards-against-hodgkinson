@@ -59,20 +59,23 @@ const RATE_LIMITER = new RateLimiterMemory({
 })
 
 // Starting firebase connection
-var firebase = require('firebase/app')
+var firebase, database
+function registerFirebase () {
+  firebase = require('firebase/app')
 
-require('firebase/auth')
-require('firebase/database')
+  require('firebase/auth')
+  require('firebase/database')
 
-const firebaseConfig = require('./../firebaseauth.json')
+  const firebaseConfig = require('./../firebaseauth.json')
 
-firebase.initializeApp(firebaseConfig)
-var database = firebase.database()
+  firebase.initializeApp(firebaseConfig)
+  database = firebase.database()
 
-// Caching some firebase routes
-database.ref('users').on('value', function () {
-// to keep the data cached
-})
+  // Caching some firebase routes
+  database.ref('users').on('value', function () {
+    // to keep the data cached
+  })
+}
 
 // Socket.io conns
 io.on('connection', function (socket) {
@@ -221,7 +224,9 @@ function dealCards (gid) {
       for (let i = 0; i < keys.length; i++) { // for each user
         console.log('handling user')
         let len
-        try { len = Object.keys(whites[keys[i]].inventory).length } catch (e) {
+        try {
+          len = Object.keys(whites[keys[i]].inventory).length
+        } catch (e) {
           len = 0
         }
         const cardsToAdd = MAX_WHITE_CARDS - len // how many cards need adding
@@ -420,6 +425,10 @@ function returningsession (uid, socket) {
     } else {
       const val = snap.val()
       socket.emit('returningsessionaccepted', { name: val.name, state: val.state })
+      if (val.state.includes('GID')) {
+        const gid = val.state.substr(val.state.indexOf('GID'), 13)
+        socket.join(gid)
+      }
       const updates = { currentSocket: socket.id }
       database.ref('users/' + uid).update(updates)
     }
@@ -452,7 +461,7 @@ function applyforusername (data, socket) {
 }
 
 function generateID () {
-  const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz1234567890!£^*()'
+  const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz1234567890-'
   let str = (new Date()).toTimeString().substr(0, 8).replace(/:/g, '')
   for (let i = 0; i < 4; i++) {
     str += chars.charAt(Math.floor(Math.random() * chars.length))
@@ -469,11 +478,12 @@ app.get('/*', function (request, response) {
 
 http.listen(PORT, () => {
   console.log('Listening on: ' + PORT)
+  registerFirebase()
+  registerListeners()
   if (process.argv.includes('test')) {
     test()
   }
   console.time('Registered Listeners in')
-  registerListeners()
   console.timeEnd('Registered Listeners in')
 
   clearInactiveUsers()

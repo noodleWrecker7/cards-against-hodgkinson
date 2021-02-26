@@ -44,6 +44,10 @@ export default {
       }
       this.$store.dispatch('socket_setstate', data.state)
       if (this.$route.fullPath !== data.state) {
+        console.log('changing path')
+        const state = data.state
+        const route = this.$route.fullPath
+        console.log({ state, route })
         this.$router.go(data.state)
       }
     },

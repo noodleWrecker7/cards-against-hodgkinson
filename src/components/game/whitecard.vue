@@ -54,14 +54,14 @@ export default {
   padding-top: 1%; !* 1:1 Aspect Ratio *!
   position: relative; !* If you want text inside of it *!*/
   position: relative;
-  width: 12%;
+  width: 10%;
   min-width: 8em;
-  padding-top: 16%; /* 1:1 Aspect Ratio */
+  padding-top: 14%; /* Aspect Ratio */
   height: 10em;
   box-sizing: border-box;
   display: block;
   margin-left: 1em;
-  margin-right: 1em;
+  margin-right: 0.9em;
   margin-top: 1em;
   flex-shrink: 2;
 }

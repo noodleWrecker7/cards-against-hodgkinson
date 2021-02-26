@@ -1,5 +1,5 @@
 <template>
-  <div id="game-page" >
+  <div id="game-page">
     <div id="control-bar">Controls
       <button v-if="$store.state.isOwner" @click="displaycontrols=!displaycontrols">
         {{ this.displaycontrols ? 'Hide' : 'Show' }} Controls
@@ -24,7 +24,8 @@
         </div>
 
         <div id="player-cards-container" v-if="gameData.round >0">
-          <whitecard @cardclicked="toggleCardSelected" :key="key" :cardKey="key" v-for="(card, key) in playerWhiteCards" :cardData="card"/>
+          <whitecard @cardclicked="toggleCardSelected" :key="key" :cardKey="key" v-for="(card, key) in playerWhiteCards"
+                     :cardData="card"/>
         </div>
       </div>
     </div>
@@ -45,7 +46,10 @@ import { mapState } from 'vuex'
 
 export default {
   name: 'Game',
-  components: { Whitecard, Blackcard },
+  components: {
+    Whitecard,
+    Blackcard
+  },
   props: [
     'gameID'
   ],
@@ -55,11 +59,18 @@ export default {
       if (this.selectedCards.includes(key)) {
         this.selectedCards.splice(this.selectedCards.indexOf(key), 1)
       } else {
-        this.selectedCards.push(key)
+        if (this.selectedCards.length === this.gameData.blackCard.rule) {
+          // todo custom alert probably in app.vue
+        } else {
+          this.selectedCards.push(key)
+        }
       }
     },
     startGame () {
-      this.$socket.client.emit('startgame', { uid: this.$store.state.UID, gid: this.$store.state.GID })
+      this.$socket.client.emit('startgame', {
+        uid: this.$store.state.UID,
+        gid: this.$store.state.GID
+      })
     }
   },
   computed: {
@@ -71,7 +82,10 @@ export default {
     )
   },
   data () {
-    return { displaycontrols: false, selectedCards: [] }
+    return {
+      displaycontrols: false,
+      selectedCards: []
+    }
   },
   sockets: {
     gamenotfound () {
@@ -87,7 +101,10 @@ export default {
     console.log(this.$route.fullPath)
     console.log(this.gameID)
     this.$store.dispatch('setGID', this.gameID)
-    this.$socket.client.emit('arriveatgamepage', { uid: this.$store.state.UID, gid: this.gameID })
+    this.$socket.client.emit('arriveatgamepage', {
+      uid: this.$store.state.UID,
+      gid: this.gameID
+    })
   }
 }
 </script>
@@ -142,16 +159,11 @@ export default {
 #black-card-container {
 }
 
-#top-section {
-  display: flex;
-  flex-flow: row wrap;
-}
-
 #player-cards-container {
   display: flex;
   flex-flow: row wrap;
   border: 1px solid green;
-  flex-grow: 1;
+  padding-bottom: 5em;
 }
 
 #black-card-container {

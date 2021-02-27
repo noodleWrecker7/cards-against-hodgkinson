@@ -53,7 +53,7 @@ export default {
     },
     returningsessioninvalid () {
       this.$store.dispatch('logOut')
-      this.$router.push('/')
+      this.$router.go('/')
       // clear uid
       // clear name
       // go to home

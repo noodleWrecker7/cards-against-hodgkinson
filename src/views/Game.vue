@@ -9,7 +9,7 @@
       <div id="left-section">
         <div id="black-card-container">
           <blackcard :carddata="gameData.blackCard"/>
-          <button>Submit answer</button>
+          <button @click="submitCards">Submit answer</button>
         </div>
         <div id="player-list-container">
           <p v-for="(player, id) in playerList" :key="id">{{ player.name }}</p>
@@ -20,12 +20,12 @@
       </div>
       <div id="right-section">
         <div id="top-white-cards-container">
-          <whitecard :key="x" v-for="x in 18"/>
+          <!--          <whitecard :key="x" v-for="x in 18"/>-->
         </div>
 
         <div id="player-cards-container" v-if="gameData.round >0">
           <whitecard @cardclicked="toggleCardSelected" :key="key" :cardKey="key" v-for="(card, key) in playerWhiteCards"
-                     :cardData="card"/>
+                     :cardData="card" :class="{selected: selectedCards.includes(key)}"/>
         </div>
       </div>
     </div>
@@ -54,17 +54,43 @@ export default {
     'gameID'
   ],
   methods: {
+    submitCards () {
+      if (this.selectedCards.length > this.gameData.blackCard.rule) {
+        return
+      }
+      this.$socket.client.emit('selectcards', {
+        uid: this.$store.state.UID,
+        gid: this.$store.state.GID,
+        cards: this.selectedCards
+      }, function (data) {
+        if (data.success) {
+          this.retries = 0
+        } else if (data.failed) {
+          if (data.failed === 'rate limit') {
+            if (this.retries < 3) {
+              this.retries++
+              setTimeout(this.submitCards, 2000)
+            }
+          }
+        }
+      })
+    },
     toggleCardSelected (key) {
+      if (this.gameData.state !== 'players picking') {
+        alert('Now is not the time to play your card\n;(')
+        return
+      }
       console.log(key)
       if (this.selectedCards.includes(key)) {
         this.selectedCards.splice(this.selectedCards.indexOf(key), 1)
-      } else {
-        if (this.selectedCards.length === this.gameData.blackCard.rule) {
-          // todo custom alert probably in app.vue
-        } else {
-          this.selectedCards.push(key)
-        }
+        return
       }
+
+      if (this.selectedCards.length === this.gameData.blackCard.rule) {
+        alert('Thats too many cards!\nYou can only play ' + this.gameData.blackCard.rule + ' card(s) this round')
+        return
+      }
+      this.selectedCards.push(key)
     },
     startGame () {
       this.$socket.client.emit('startgame', {
@@ -84,7 +110,8 @@ export default {
   data () {
     return {
       displaycontrols: false,
-      selectedCards: []
+      selectedCards: [],
+      retries: 0
     }
   },
   sockets: {

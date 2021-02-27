@@ -14,7 +14,7 @@ module.exports = (getData, utils) => {
     requestwhitecards (data, callback, socket) {
       utils.handleCall(data.uid, socket).then(() => {
         getData.usersWhiteCards(data.uid, data.gid).then((data) => {
-          callback({ error: null, data: data })
+          callback({ error: null, data: data.inventory })
         }).catch((err) => {
           callback({ error: err.message })
         })

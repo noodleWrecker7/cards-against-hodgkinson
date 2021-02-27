@@ -5,18 +5,16 @@ module.exports = (io, database, utils, getData, setData, emit) => {
     // Spaghetti starts here
 
     startGame (uid, gid, socket) {
-      database.ref('gameStates/' + gid + '/gameplayInfo/creatorUID').once('value').then((snap) => {
-        if (!snap.exists()) {
-          console.log('gamenotfound')
-          console.log(snap.val())
-          console.log(gid)
-          socket.emit('gamenotfound')
-          return
-        }
-        if (!snap.val() === uid) {
+      getData.gameplayInfo(gid).then((game) => {
+        if (!game.creatorUID === uid) {
           socket.emit('notauthorisedtoaction')
+        } else if (game.state === 'not started') {
+          this.progressGame(gid)
         }
-        this.progressGame(gid)
+      }).catch((err) => {
+        console.log(err)
+        console.log('gamenotfound')
+        socket.emit('gamenotfound')
       })
     },
 
@@ -57,7 +55,7 @@ module.exports = (io, database, utils, getData, setData, emit) => {
       getData.gameplayState(gid).then((state) => {
         switch (state) { // Omitted purely for testing
           case 'not started':
-            var updates = { state: 'players picking', round: 1, playedCards: 0 }
+            var updates = { state: 'players picking', round: 1 }
             database.ref('gameStates/' + gid + '/gameplayInfo').update(updates)
             this.dealCards(gid)
             break
@@ -170,7 +168,7 @@ module.exports = (io, database, utils, getData, setData, emit) => {
           round: 0,
           maxRounds: maxRounds,
           creatorUID: owner,
-          playedCards: 0,
+          playedCards: {},
           state: 'not started'
         },
         players: {}
@@ -228,6 +226,61 @@ module.exports = (io, database, utils, getData, setData, emit) => {
       database.ref('users').orderByChild('lastSeen').endBefore(cutoff).once('value').then((snap) => {
         this.logout(snap.key)
       })
+    },
+
+    selectCards (uid, gid, cards, callback) {
+      console.log(cards)
+      if (!cards) {
+        callback({ failed: 'none sent' })
+        return
+      }
+      const updates = {}
+
+      Promise.all([
+        getData.gameplayInfo(gid),
+        getData.usersWhiteCards(uid, gid)
+      ]).then((values) => {
+        const gameInfo = values[0]
+        const userCards = values[1]
+
+        if (cards.length > gameInfo.blackCard.rule) {
+          callback({ failed: 'too many' })
+          return
+        }
+        if (userCards.played) {
+          callback({ failed: 'already played' })
+        }
+        const keys = Object.keys(userCards.inventory)
+        const valid = cards.every(v => keys.includes(v)) // checks keys provided are actually part of inventory
+        if (!valid) {
+          callback({ failed: 'not exist' })
+          return
+        }
+        const cardObjs = []
+        for (let i = 0; i < cards.length; i++) {
+          cardObjs.push(userCards.inventory[cards[i]])
+          updates['gameStates/' + gid + '/whiteCardsData/' + uid + '/inventory/' + cards[i]] = null
+        }
+
+        updates['gameStates/' + gid + '/playedCards/' + uid] = cardObjs
+        database.ref().update(updates).then(() => {
+          callback({ success: true })
+          // todo check if last player to play then progress
+          Promise.all([getData.playedCards(gid), getData.whiteCardsData(gid)]).then((values) => {
+            const playedCards = values[0]
+            const whiteCards = values[1]
+            if (Object.keys(playedCards).length >= Object.keys(whiteCards).length) { // if everyone played
+              this.progressGame(gid) // go to voting stage
+            }
+          })
+        })
+
+        //
+      }).catch((err) => {
+        console.log(err)
+        callback({ failed: 'unknown' })
+      })
     }
+
   }
 }

@@ -46,6 +46,9 @@ http.listen(PORT, () => {
   require('./game')(io, database)
   // game.clearInactiveUsers()
   console.timeEnd('Started server in')
+  if (process.argv.includes('test')) {
+    process.exit(0)
+  }
 })
 
 app.get('/*', function (request, response) {

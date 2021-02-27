@@ -57,7 +57,10 @@ export default {
       function (response) {
         if (!response.error) {
           context.commit('setPlayerWhiteCards', response.data)
+          context.state.retries = 0
         } else if (response.error === 'rate limit') {
+          if (context.state.retries > 3) { return }
+          context.state.retries++
           setTimeout(() => {
             this.socket_comegetwhitecards(context)
           }, 1000, context)

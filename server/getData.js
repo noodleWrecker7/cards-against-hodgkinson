@@ -1,7 +1,7 @@
 module.exports = (database) => {
   return {
     usersWhiteCards (uid, gid) {
-      return this.getOnce('/gameStates/' + gid + '/whiteCardsData/' + uid + '/inventory')
+      return this.getOnce('/gameStates/' + gid + '/whiteCardsData/' + uid)
     },
     lobbies () {
       return new Promise((resolve) => {
@@ -24,6 +24,9 @@ module.exports = (database) => {
     },
     gameplayInfo (gid) {
       return this.getOnce('gameStates/' + gid + '/gameplayInfo')
+    },
+    playedCards (gid) {
+      return this.getOnce('gameStates/' + gid + '/playedCards')
     },
     gameplayState (gid) {
       return this.getOnce('gameStates/' + gid + '/gameplayInfo/state')

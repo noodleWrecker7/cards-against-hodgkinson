@@ -1,5 +1,5 @@
 <template>
-  <div class="card-itself" @click="toggleCardClicked" :class="{selected:this.selected }">
+  <div class="card-itself" @click="toggleCardClicked">
     <p class="card-text">{{ cardData.text }}</p>
   </div>
 </template>
@@ -18,7 +18,6 @@ export default {
   methods: {
     toggleCardClicked () {
       // things
-      this.selected = !this.selected
       this.$emit('cardclicked', this.cardKey)
     }
   }

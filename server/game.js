@@ -58,8 +58,14 @@ module.exports = (io, database) => {
       })
     })
 
-    socket.on('selectcards', function (data) {
-
+    socket.on('selectcards', function (data, callback) {
+      utils.handleCall(data.uid, socket).then(() => {
+        funcs.selectCards(data.uid, data.gid, data.cards, callback)
+      }).catch((err) => {
+        if (err.message === 'rate limit') {
+          callback({ failed: 'rate limit' })
+        }
+      })
     })
 
     //

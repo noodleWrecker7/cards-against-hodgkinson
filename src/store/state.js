@@ -12,5 +12,6 @@ export default {
   playerList: {},
   isOwner: true,
   state: '/lobby',
-  playerWhiteCards: []
+  playerWhiteCards: [],
+  retries: 0
 }

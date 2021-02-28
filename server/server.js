@@ -29,21 +29,43 @@ const io = require('socket.io')(http, {
 })
 
 // Starting firebase connection
-const firebase = require('firebase/app')
+var firebase
+var database
 
-require('firebase/auth')
-require('firebase/database')
+var warmedup = false
 
-const firebaseConfig = require('./../firebaseauth.json')
+app.get('/_ah/warmup', (req, res) => {
+  // Handle your warmup logic. Initiate db connection, etc.
+  warmup()
+  res.send()
+})
 
-firebase.initializeApp(firebaseConfig)
-const database = firebase.database()
+function warmup () {
+  if (warmedup) {
+    return
+  }
+  firebase = require('firebase/app')
+  require('firebase/auth')
+  require('firebase/database')
 
-http.listen(PORT, () => {
-  console.log('Listening on: ' + PORT)
+  const firebaseConfig = require('./../firebaseauth.json')
+
+  firebase.initializeApp(firebaseConfig)
+  database = firebase.database()
+  warmedup = true
+
   require('./firebaseListeners')(io, database)
 
   require('./game')(io, database)
+}
+
+http.listen(PORT, () => {
+  console.log('Listening on: ' + PORT)
+
+  if (!warmedup) {
+    warmup()
+  }
+
   // game.clearInactiveUsers()
   console.timeEnd('Started server in')
   if (process.argv.includes('test')) {

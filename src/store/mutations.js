@@ -23,9 +23,19 @@ export default {
     state.gameData = data
   },
   setPlayerList (state, data) {
+    console.log('commit playerlist')
     state.playerList = data
   },
   setSecret (state, data) {
     state.secret = data
+  },
+  setState (state, data) {
+    state.state = data
+  },
+  setPlayerWhiteCards (state, data) {
+    state.playerWhiteCards = data
+  },
+  setTopCards (state, data) {
+    state.topCards = data
   }
 }

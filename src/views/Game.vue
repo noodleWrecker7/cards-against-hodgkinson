@@ -1,11 +1,15 @@
 <template>
   <div id="game-page">
-    <div id="control-bar">Controls<button v-if="$store.state.isOwner" @click="displaycontrols=!displaycontrols">{{this.displaycontrols?'Hide':'Show'}} Controls</button></div>
+    <div id="control-bar">Controls
+      <button v-if="$store.state.isOwner" @click="displaycontrols=!displaycontrols">
+        {{ this.displaycontrols ? 'Hide' : 'Show' }} Controls
+      </button>
+    </div>
     <div id="game-container">
       <div id="left-section">
         <div id="black-card-container">
-          <blackcard cardtext="Question?"/>
-          <button>Submit answer</button>
+          <blackcard :carddata="gameData.blackCard"/>
+          <button @click="submitCards">Submit answer</button>
         </div>
         <div id="player-list-container">
           <p v-for="(player, id) in playerList" :key="id">{{ player.name }}</p>
@@ -16,11 +20,12 @@
       </div>
       <div id="right-section">
         <div id="top-white-cards-container">
-          <whitecard :key="x" v-for="x in 18"/>
+          <!--          <whitecard :key="x" v-for="x in 18"/>-->
         </div>
 
-        <div id="player-cards-container">
-          <whitecard :key="x" v-for="x in 7"/>
+        <div id="player-cards-container" v-if="gameData.round >0">
+          <whitecard @cardclicked="toggleCardSelected" :key="key" :cardKey="key" v-for="(card, key) in playerWhiteCards"
+                     :cardData="card" :class="{selected: selectedCards.includes(key)}"/>
         </div>
       </div>
     </div>
@@ -28,7 +33,7 @@
     <transition name="slide">
       <div id="create-game-form" v-if="displaycontrols">
         <h3>Game Controls</h3>
-<button @click="startGame">Start</button>
+        <button @click="startGame">Start</button>
       </div>
     </transition>
   </div>
@@ -41,42 +46,100 @@ import { mapState } from 'vuex'
 
 export default {
   name: 'Game',
-  components: { Whitecard, Blackcard },
+  components: {
+    Whitecard,
+    Blackcard
+  },
   props: [
     'gameID'
   ],
   methods: {
+    submitCards () {
+      if (this.selectedCards.length > this.gameData.blackCard.rule) {
+        return
+      }
+      this.$socket.client.emit('selectcards', {
+        uid: this.$store.state.UID,
+        gid: this.$store.state.GID,
+        cards: this.selectedCards
+      }, function (data) {
+        if (data.success) {
+          this.retries = 0
+        } else if (data.failed) {
+          if (data.failed === 'rate limit') {
+            if (this.retries < 3) {
+              this.retries++
+              setTimeout(this.submitCards, 2000)
+            }
+          }
+        }
+      })
+    },
+    toggleCardSelected (key) {
+      if (this.gameData.state !== 'players picking') {
+        alert('Now is not the time to play your card\n;(')
+        return
+      }
+      console.log(key)
+      if (this.selectedCards.includes(key)) {
+        this.selectedCards.splice(this.selectedCards.indexOf(key), 1)
+        return
+      }
+
+      if (this.selectedCards.length === this.gameData.blackCard.rule) {
+        alert('Thats too many cards!\nYou can only play ' + this.gameData.blackCard.rule + ' card(s) this round')
+        return
+      }
+      this.selectedCards.push(key)
+    },
     startGame () {
-      this.$socket.client.emit('startgame', { uid: this.$store.state.UID, gid: this.$store.state.GID })
+      this.$socket.client.emit('startgame', {
+        uid: this.$store.state.UID,
+        gid: this.$store.state.GID
+      })
     }
   },
   computed: {
     ...mapState([
       'gameData',
-      'playerList'
+      'playerList',
+      'playerWhiteCards'
     ]
     )
   },
-  data () { return { displaycontrols: false } },
+  data () {
+    return {
+      displaycontrols: false,
+      selectedCards: [],
+      retries: 0
+    }
+  },
   sockets: {
     gamenotfound () {
       console.log('game no find')
-      this.$router.replace('//lobby')
+      // this.$router.replace('//lobby')
+    },
+    topcards (data) {
+
     }
   },
   mounted () {
     if (!this.$store.state.loggedIn) {
       this.$router.push('/')
     }
+    console.log(this.$route.fullPath)
     console.log(this.gameID)
     this.$store.dispatch('setGID', this.gameID)
-    this.$socket.client.emit('arriveatgamepage', { uid: this.$store.state.UID, gid: this.gameID })
+    this.$socket.client.emit('arriveatgamepage', {
+      uid: this.$store.state.UID,
+      gid: this.gameID
+    })
   }
 }
 </script>
 
 <style scoped>
-#create-game-form{
+#create-game-form {
   position: fixed;
   background-color: whitesmoke;
   width: 30%;
@@ -91,10 +154,12 @@ export default {
   box-sizing: border-box;
   bottom: 10%;
 }
-#game-page{
+
+#game-page {
   display: flex;
   flex-flow: column;
 }
+
 #game-container {
   display: flex;
   flex-flow: row nowrap;
@@ -123,16 +188,11 @@ export default {
 #black-card-container {
 }
 
-#top-section {
-  display: flex;
-  flex-flow: row wrap;
-}
-
 #player-cards-container {
   display: flex;
   flex-flow: row wrap;
   border: 1px solid green;
-  flex-grow: 1;
+  padding-bottom: 5em;
 }
 
 #black-card-container {
@@ -143,6 +203,7 @@ export default {
 #control-bar {
   background-color: grey;
 }
+
 .slide-item {
   display: inline-block;
   margin-right: 10px;

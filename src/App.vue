@@ -42,15 +42,18 @@ export default {
         console.log('route same')
         return
       }
-      if (data.state.includes('lobby')) {
-        this.$router.replace(data.state)
-      } else {
-        this.$router.replace('/' + data.state)
+      this.$store.dispatch('socket_setstate', data.state)
+      if (this.$route.fullPath !== data.state) {
+        console.log('changing path')
+        const state = data.state
+        const route = this.$route.fullPath
+        console.log({ state, route })
+        this.$router.go(data.state)
       }
     },
     returningsessioninvalid () {
       this.$store.dispatch('logOut')
-      this.$router.push('/')
+      this.$router.go('/')
       // clear uid
       // clear name
       // go to home

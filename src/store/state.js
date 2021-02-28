@@ -10,5 +10,9 @@ export default {
   },
   gameData: {},
   playerList: {},
-  isOwner: true
+  isOwner: true,
+  state: '/lobby',
+  playerWhiteCards: [],
+  retries: 0,
+  topCards: {}
 }

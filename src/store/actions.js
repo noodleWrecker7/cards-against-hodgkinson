@@ -26,8 +26,8 @@ export default {
   setGID (context, data) {
     context.commit('setGID', data)
   },
-  socket_sendplayerwhitecards (context, data) {
-
+  setPlayerWhiteCards (context, data) {
+    context.commit('setPlayerWhiteCards', data)
   },
   socket_sendgameinfo (context, data) {
     console.log('gamedata')
@@ -38,5 +38,39 @@ export default {
   socket_playerlist (context, data) {
     console.log(data)
     context.commit('setPlayerList', data)
+  },
+  socket_setstate (context, data) {
+    if (context.state.state !== data) {
+      // this._vm.$router.go(data)
+      // this.$router.go(data)
+    }
+    context.commit('setState', data)
+  },
+  socket_sendplayerwhitecards (context, data) {
+    context.commit('setPlayerWhiteCards', data)
+  },
+  socket_comegetwhitecards (context) {
+    console.log('white cards ready')
+
+    this._vm.$socket.client.emit('requestwhitecards',
+      { uid: context.state.UID, gid: context.state.GID },
+      function (response) {
+        if (!response.error) {
+          context.commit('setPlayerWhiteCards', response.data)
+          context.state.retries = 0
+        } else if (response.error === 'rate limit') {
+          if (context.state.retries > 3) { return }
+          context.state.retries++
+          setTimeout(() => {
+            this.socket_comegetwhitecards(context)
+          }, 1000, context)
+        } else if (response.error === 'no card data') {
+          console.error('Server could not find white cards')
+        }
+      }
+    )
+  },
+  setTopCards (context, data) {
+    context.commit('setTopCards', data)
   }
 }

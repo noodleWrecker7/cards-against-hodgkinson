@@ -1,18 +1,13 @@
 <template>
   <div id="app">
     <div id="nav">
+      <button @click="logout()" id="logout-button">Log Out</button>
       <p id="version-tag">{{ this.$store.state.versionName }}</p>
-      <div v-if="$store.state.loggedIn">
-
-        You are logged in as {{ this.$store.state.userName }}
-        <button @click="logout()" id="logout-button">Log Out</button>
+      <div class="navSection" v-if="$store.state.loggedIn">
+        <div class="usernamecontainer">You are logged in as:
+          <p class="username">{{ this.$store.state.userName }}</p>
+        </div>
       </div>
-
-      <router-link to="/">Home</router-link>
-      |
-      <router-link to="/lobby">Lobby</router-link>
-      |
-      <router-link to="/game">Game</router-link>
 
     </div>
     <router-view class="router-view"/>
@@ -24,9 +19,9 @@ export default {
   name: 'app',
   methods: {
     logout () {
-      this.$socket.client.emit('logout', { uid: this.$store.state.UID })
       this.$store.dispatch('logOut')
       this.$router.push('/')
+      this.$socket.client.emit('logout', { uid: this.$store.state.UID })
     }
   },
   sockets: {
@@ -34,6 +29,7 @@ export default {
       console.error('Secret rejected by server')
     },
     returningsessionaccepted (data) {
+      console.log('accepted session')
       // set username
       // set logged in
       this.$store.dispatch('logIn', { name: data.name, uid: this.$store.state.UID })
@@ -43,17 +39,17 @@ export default {
         return
       }
       this.$store.dispatch('socket_setstate', data.state)
-      if (this.$route.fullPath !== data.state) {
-        console.log('changing path')
-        const state = data.state
-        const route = this.$route.fullPath
-        console.log({ state, route })
-        this.$router.go(data.state)
-      }
+      console.log('changing path')
+      const state = data.state
+      const route = this.$route.fullPath
+      console.log({ state, route })
+      this.$router.push(data.state)
     },
     returningsessioninvalid () {
       this.$store.dispatch('logOut')
-      this.$router.go('/')
+      if (this.$route.fullPath !== '/') {
+        this.$router.push('/')
+      }
       // clear uid
       // clear name
       // go to home
@@ -66,12 +62,32 @@ export default {
 .router-view {
   flex-grow: 1;
 }
+
 #logout-button {
-  float: right;
+  /*margin-left: auto;*/
+  position: fixed;
+  right: 0;
+  margin-right: 5px
 }
 
 #version-tag {
   position: fixed;
+}
+.navSection{
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.username {
+  display: inline-block;
+  font-weight: bold;
+}
+
+.usernamecontainer {
+  color: white;
+  width: fit-content;
+  margin-left: auto;
+  margin-right: auto;
 }
 
 #app {
@@ -83,13 +99,17 @@ export default {
   height: 100vh;
   display: flex;
   flex-flow: column nowrap;
+  background-color: #323232;
 }
 
 #nav {
-  padding: 30px;
+  padding: 10px;
   padding-top: 0;
-  padding-bottom: 10px;
-  background-color: grey;
+  padding-bottom: 5px;
+  background-color: dodgerblue;
+  font-size: large;
+  color: #acacac;
+  min-height: 50px;
 }
 
 #nav a {

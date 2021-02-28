@@ -12,6 +12,7 @@ export default {
     context.commit('setUsername', '')
     context.commit('setUID', '')
     context.commit('setSecret', '')
+    context.commit('setGameData', {})
   },
   logIn (context, data) {
     context.commit('setLoggedIn', true)
@@ -32,6 +33,9 @@ export default {
   socket_sendgameinfo (context, data) {
     console.log('gamedata')
     console.log(data)
+    if (context.state.gameData.state !== data.state) {
+      context.commit('setHasSubmittedCards', false)
+    }
     context.commit('setGameData', data)
   },
 

@@ -18,3 +18,9 @@ node_modules/
 
 #clientside
 src/
+public/
+netlify.toml
+
+dbschema.json
+README.md
+

@@ -7,7 +7,7 @@
     "build": "vue-cli-service build",
     "lint": "vue-cli-service lint",
     "start": "node server/server.js",
-    "server": "nodemon server/server.js --inspect",
+    "server": "nodemon server/server.js --inspect --trace-warnings",
     "test": "node server/server.js test"
   },
   "dependencies": {

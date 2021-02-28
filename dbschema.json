@@ -43,7 +43,8 @@
         "UIDxxx": {
           "name": "Adam",
           "points": 0,
-          "hasPlayed": false
+          "hasPlayed": false,
+          "doing": "Czar/Voting/Selecting"
         }
       }
     }

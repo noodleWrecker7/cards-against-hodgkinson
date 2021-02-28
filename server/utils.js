@@ -10,7 +10,7 @@ module.exports = (database) => {
   console.timeEnd('Loaded white cards in')
   const { RateLimiterMemory } = require('rate-limiter-flexible')
   const RATE_LIMITER = new RateLimiterMemory({
-    points: 10,
+    points: 15,
     duration: 1 // per sec
   })
   return {
@@ -54,6 +54,8 @@ module.exports = (database) => {
           })
         }).catch((err) => {
           console.log(err)
+          console.log(err.stack)
+          console.trace()
           reject(new Error('rate limit'))
         })
       })

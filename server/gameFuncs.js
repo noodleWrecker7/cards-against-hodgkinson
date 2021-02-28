@@ -53,19 +53,18 @@ module.exports = (io, database, utils, getData, setData, emit) => {
 
     progressGame (gid) {
       getData.gameplayState(gid).then((state) => {
+        const updates = {}
         switch (state) { // Omitted purely for testing
           case 'not started':
-            var updates = { state: 'players picking', round: 1 }
-            database.ref('gameStates/' + gid + '/gameplayInfo').update(updates)
+            updates['gameStates/' + gid + '/gameplayInfo/state'] = 'players picking'
+            updates['gameStates/' + gid + '/gameplayInfo/round'] = 1
             this.dealCards(gid)
             break
           case 'players picking':
-            getData.playedCards(gid).then((data) => {
-              const updates = {}
-              updates['gameStates/' + gid + '/gameplayInfo/state'] = 'players voting'
-            })
+            updates['gameStates/' + gid + '/gameplayInfo/state'] = 'players voting'
             break
         }
+        database.ref().update(updates)
       })
     },
 
@@ -74,17 +73,17 @@ module.exports = (io, database, utils, getData, setData, emit) => {
         if (state.includes('GID')) {
           console.log('logged out user has a game')
           const gid = state.substring(state.indexOf('GID'), 13)
-          this.removePlayerFromGame(uid, gid, socket)
+          this.removePlayerFromGame(uid, gid, socket, '/')
         }
       })
       database.ref('users/' + uid).remove()
     },
 
-    removePlayerFromGame (uid, gid, socket) {
+    removePlayerFromGame (uid, gid, socket, newstate = '/lobby') {
       if (socket) {
         socket.leave(gid)
       }
-      setData.userState(uid, '/lobby')
+      setData.userState(uid, newstate)
       // todo implement player removing
     },
 
@@ -196,8 +195,6 @@ module.exports = (io, database, utils, getData, setData, emit) => {
             const gid = val.state.substr(val.state.indexOf('GID'), 13)
             socket.join(gid)
           }
-          const updates = { currentSocket: socket.id }
-          database.ref('users/' + uid).update(updates)
         }
       })
     },
@@ -217,7 +214,6 @@ module.exports = (io, database, utils, getData, setData, emit) => {
       database.ref('users/' + uid).set({
         UID: uid,
         name: data,
-        currentSocket: socket.id,
         secret: secret,
         state: '/lobby' // current position in the flow eg game lobby etc
       }).then(() => {

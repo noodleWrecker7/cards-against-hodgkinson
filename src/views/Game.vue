@@ -1,7 +1,7 @@
 <template>
   <div id="game-page">
-    <div id="control-bar">Controls
-      <button v-if="$store.state.isOwner" @click="displaycontrols=!displaycontrols">
+    <div id="control-bar">
+      <button id="controlsbutton" v-if="$store.state.isOwner" @click="displaycontrols=!displaycontrols">
         {{ this.displaycontrols ? 'Hide' : 'Show' }} Controls
       </button>
     </div>
@@ -9,18 +9,19 @@
       <div id="left-section">
         <div id="black-card-container">
           <blackcard :carddata="gameData.blackCard"/>
-          <button @click="submitCards">Submit answer</button>
+          <button :disabled="hasSubmittedCards" id="submitbutton" @click="submitCards">Submit answer</button>
         </div>
         <div id="player-list-container">
           <p v-for="(player, id) in playerList" :key="id">{{ player.name }}</p>
         </div>
-        <!--      <div id="top-white-cards-container">-->
 
-        <!--      </div>-->
       </div>
       <div id="right-section">
         <div id="top-white-cards-container">
           <!--          <whitecard :key="x" v-for="x in 18"/>-->
+          <div :key="key" :userID="key" v-for="(user,key) in topCards">
+            <whitecard :key="index" v-for="(card, index) in user" :card-data="card"/>
+          </div>
         </div>
 
         <div id="player-cards-container" v-if="gameData.round >0">
@@ -65,6 +66,8 @@ export default {
       }, function (data) {
         if (data.success) {
           this.retries = 0
+          this.selectedCards = []
+          this.$store.commit('setHasSubmittedCards', true)
         } else if (data.failed) {
           if (data.failed === 'rate limit') {
             if (this.retries < 3) {
@@ -103,7 +106,9 @@ export default {
     ...mapState([
       'gameData',
       'playerList',
-      'playerWhiteCards'
+      'playerWhiteCards',
+      'hasSubmittedCards',
+      'topCards'
     ]
     )
   },
@@ -120,7 +125,7 @@ export default {
       // this.$router.replace('//lobby')
     },
     topcards (data) {
-
+      this.$store.dispatch('setTopCards', data)
     }
   },
   mounted () {
@@ -139,6 +144,22 @@ export default {
 </script>
 
 <style scoped>
+#submitbutton{
+  background-color: #42ff42;
+  color: black;
+  border-radius: 5px;
+  border-color: #323232;
+}
+#controlsbutton{
+  background-color: #323232;
+  color: white;
+  border-radius: 5px;
+  border-color: #323232;
+  margin-bottom: 5px;
+}
+#player-list-container{
+  color: white;
+}
 #create-game-form {
   position: fixed;
   background-color: whitesmoke;
@@ -201,7 +222,7 @@ export default {
 }
 
 #control-bar {
-  background-color: grey;
+  background-color: dodgerblue;
 }
 
 .slide-item {

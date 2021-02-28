@@ -19,6 +19,7 @@ export default {
     usernameaccepted (data) {
       this.$store.dispatch('logIn', data)
       this.$store.commit('setSecret', data.secret)
+      this.$router.push(data.state)
       window.location.reload()
     }
   },
@@ -36,9 +37,6 @@ export default {
     }
   },
   mounted () {
-    if (this.$store.state.loggedIn) {
-      this.$router.push('/lobby')
-    }
   }
 }
 </script>

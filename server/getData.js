@@ -40,7 +40,9 @@ module.exports = (database) => {
           if (snap.exists()) {
             resolve(snap.val())
           } else {
-            reject(new Error('Could not get data: ' + ref))
+            const err = new Error('Could not get data: ' + ref)
+            console.log(err.stack)
+            reject(err)
           }
         })
       })

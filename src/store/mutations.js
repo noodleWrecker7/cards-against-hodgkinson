@@ -37,5 +37,11 @@ export default {
   },
   setTopCards (state, data) {
     state.topCards = data
+  },
+  clearState (state) {
+    state = {}
+  },
+  setHasSubmittedCards (state, data) {
+    state.hasSubmittedCards = data
   }
 }

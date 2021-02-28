@@ -11,6 +11,11 @@ module.exports = (database, getData) => {
       getData.gameplayInfo(gid).then((data) => {
         socket.emit('sendgameinfo', data)
       })
+    },
+    playedCards (socket, gid) {
+      getData.playedCards(gid).then((data) => {
+        socket.emit('topcards', data)
+      })
     }
   }
 }

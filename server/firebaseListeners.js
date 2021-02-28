@@ -18,6 +18,10 @@ module.exports = (io, database) => {
       // }
     })
 
+    database.ref('gameStates/' + id + '/playedCards').on('value', (snap) => {
+      io.to(id).emit('topcards', snap.val())
+    })
+
     database.ref('gameStates/' + id + '/whiteCardsData').on('value', () => {
       console.log('white card update')
       io.to(id).emit('comegetwhitecards', { gid: id })

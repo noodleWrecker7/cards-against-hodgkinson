@@ -59,6 +59,12 @@ module.exports = (io, database, utils, getData, setData, emit) => {
             database.ref('gameStates/' + gid + '/gameplayInfo').update(updates)
             this.dealCards(gid)
             break
+          case 'players picking':
+            getData.playedCards(gid).then((data) => {
+              const updates = {}
+              updates['gameStates/' + gid + '/gameplayInfo/state'] = 'players voting'
+            })
+            break
         }
       })
     },
@@ -99,6 +105,7 @@ module.exports = (io, database, utils, getData, setData, emit) => {
           this.joinPlayerToGame(data.uid, data.gid).then(() => {
             emit.state(socket, data.uid)
             emit.gameplayInfo(socket, data.gid)
+            emit.playedCards(socket, data.gid)
           })
           // Err handling
         }).catch(() => {

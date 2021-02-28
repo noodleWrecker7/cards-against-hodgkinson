@@ -69,5 +69,8 @@ export default {
         }
       }
     )
+  },
+  setTopCards (context, data) {
+    context.commit('setTopCards', data)
   }
 }

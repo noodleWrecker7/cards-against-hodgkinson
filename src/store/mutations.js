@@ -34,5 +34,8 @@ export default {
   },
   setPlayerWhiteCards (state, data) {
     state.playerWhiteCards = data
+  },
+  setTopCards (state, data) {
+    state.topCards = data
   }
 }

@@ -118,8 +118,10 @@ export default {
     gamenotfound () {
       console.log('game no find')
       // this.$router.replace('//lobby')
-    }
+    },
+    topcards (data) {
 
+    }
   },
   mounted () {
     if (!this.$store.state.loggedIn) {

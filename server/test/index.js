@@ -95,8 +95,8 @@ describe('Server side testing', function () {
     beforeEach((done) => {
       // Setup
       socketClient = io.connect(`http://[${httpServerAddr.address}]:${httpServerAddr.port}`, {
-        'reconnection delay': 0,
-        'reopen delay': 0,
+        'reconnection delay': 1000,
+        'reopen delay': 1000,
         'force new connection': true,
         transports: ['websocket'],
         auth: {

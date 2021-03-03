@@ -27,8 +27,3 @@ deploy:
     no_promote: true
     on:
       branch: beta
-
-before_script:
-  - sleep 3 # give xvfb some time to start
-  - rackup  # start a Web server
-  - sleep 3 # give Web server some time to bind to sockets, etc

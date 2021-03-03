@@ -1,8 +1,8 @@
 <template>
   <div class="home">
     <h1>Cards Against Hodgkinson</h1>
-    <input v-model="username" placeholder="Username..."/>
-    <button @click="submitName">Submit</button>
+    <input v-model="username" placeholder="Username..."/><br>
+    <button @click="submitName" id="submitname">Enter</button>
 
   </div>
 </template>
@@ -43,9 +43,19 @@ export default {
 
 <style scoped>
 
+#submitname{
+  background-color: dodgerblue;
+  border-radius: 5px;
+  padding: .4em;
+  border: 1px dodgerblue ;
+  margin-top: 1em;
+  font-size: medium;
+}
+
 h1 {
   font-size: xxx-large;
   margin-top: 25vh;
   margin-bottom: 10vh;
+  color: inherit;
 }
 </style>

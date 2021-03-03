@@ -13,6 +13,7 @@ export default {
     context.commit('setUID', '')
     context.commit('setSecret', '')
     context.commit('setGameData', {})
+    context.commit('setTopCards', {})
   },
   logIn (context, data) {
     context.commit('setLoggedIn', true)

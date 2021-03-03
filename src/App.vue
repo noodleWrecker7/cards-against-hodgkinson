@@ -1,7 +1,11 @@
 <template>
-  <div id="app">
+  <div id="app" :class="isDarkMode?'dark-mode':'light-mode'">
     <div id="nav">
       <button @click="logout()" id="logout-button">Log Out</button>
+      <button class="themetogglebutton" @click="isDarkMode = !isDarkMode">
+        <img class="themetoggleimage" v-if="isDarkMode" src="@/assets/moon.svg" alt="light/dark theme toggle"/>
+        <img class="themetoggleimage" v-else src="@/assets/sun.svg" alt="light/dark theme toggle"/>
+      </button>
       <p id="version-tag">{{ this.$store.state.versionName }}</p>
       <div class="navSection" v-if="$store.state.loggedIn">
         <div class="usernamecontainer">You are logged in as:
@@ -22,6 +26,16 @@ export default {
       this.$store.dispatch('logOut')
       this.$router.push('/')
       this.$socket.client.emit('logout', { uid: this.$store.state.UID })
+    }
+  },
+  computed: {
+    modeimage () {
+      return this.isDarkMode ? 'moon.svg' : 'sun.svg'
+    }
+  },
+  data () {
+    return {
+      isDarkMode: false
     }
   },
   sockets: {
@@ -59,6 +73,14 @@ export default {
 </script>
 
 <style>
+.themetogglebutton{
+  border: none;
+  background: none;
+}
+.themetoggleimage {
+  width: 2em
+}
+
 .router-view {
   flex-grow: 1;
 }
@@ -73,11 +95,13 @@ export default {
 #version-tag {
   position: fixed;
 }
-.navSection{
+
+.navSection {
   display: flex;
   align-items: center;
   justify-content: center;
 }
+
 .username {
   display: inline-block;
   font-weight: bold;
@@ -95,11 +119,19 @@ export default {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   text-align: center;
-  color: #2c3e50;
   height: 100vh;
   display: flex;
   flex-flow: column nowrap;
+}
+
+.dark-mode {
   background-color: #323232;
+  color: white;
+}
+
+.light-mode {
+  background-color: white;
+  color: #323232;
 }
 
 #nav {

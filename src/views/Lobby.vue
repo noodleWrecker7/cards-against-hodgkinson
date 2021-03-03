@@ -156,6 +156,7 @@ input {
   padding-left: 5%;
   padding-right: 5%;
   box-sizing: border-box;
+  color: #323232;
 }
 
 img {

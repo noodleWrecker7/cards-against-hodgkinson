@@ -77,9 +77,10 @@ describe('Server side testing', function () {
           allowEIO3: true
         }
       })
-      const listened = httpServer.listen()
+      const listened = httpServer.listen(function () {
+        done()
+      })
       httpServerAddr = listened.address()
-      done()
     })
 
     // Cleanup WS & HTTP server

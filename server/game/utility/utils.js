@@ -77,7 +77,6 @@ function authenticateMessage (uid, secret, database) {
       if (secret === snap.val()) {
         resolve()
       } else {
-        const v = snap.val()
         reject(new Error('secretnotmatch'))
       }
     }).catch((reason) => {

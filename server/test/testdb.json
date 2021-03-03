@@ -1,11 +1,16 @@
 {
-  "test": "hi",
   "users": {
     "UID1234567890": {
       "UID": "UID1234567890",
-      "name": "noodle",
-      "currentSocket": "",
-      "secret": "xxxxxxx",
+      "name": "testman",
+      "secret": "testtoken",
+      "state": "lobby",
+      "lastSeen": "0"
+    },
+    "UID1234567892": {
+      "UID": "UID1234567890",
+      "name": "testman",
+      "secret": "eeee",
       "state": "lobby",
       "lastSeen": "0"
     }
@@ -44,8 +49,7 @@
         "UIDxxx": {
           "name": "Adam",
           "points": 0,
-          "hasPlayed": false,
-          "doing": "Czar/Voting/Selecting"
+          "hasPlayed": false
         }
       }
     }

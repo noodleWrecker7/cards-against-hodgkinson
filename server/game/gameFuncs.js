@@ -1,5 +1,5 @@
 const MAX_WHITE_CARDS = 7
-module.exports = (io, database, utils, getData, setData, emit) => {
+module.exports = (database, utils, getData, setData, emit) => {
   return { // Socket.io conns
 
     // Spaghetti starts here
@@ -54,7 +54,7 @@ module.exports = (io, database, utils, getData, setData, emit) => {
     progressGame (gid) {
       getData.gameplayState(gid).then((state) => {
         const updates = {}
-        switch (state) { // Omitted purely for testing
+        switch (state) {
           case 'not started':
             updates['gameStates/' + gid + '/gameplayInfo/state'] = 'players picking'
             updates['gameStates/' + gid + '/gameplayInfo/round'] = 1
@@ -65,6 +65,18 @@ module.exports = (io, database, utils, getData, setData, emit) => {
             break
         }
         database.ref().update(updates)
+      })
+    },
+
+    nextCzar (gid) {
+      getData.czar(gid).then((czar) => {
+        database.ref('gameStates/' + gid + '/players').orderByKey().startAfter(czar).limitToFirst(1).once('value').then((snap) => {
+          if (snap.exists()) {
+            console.log('exists')
+          } else {
+            console.log('no exist')
+          }
+        })
       })
     },
 
@@ -142,16 +154,6 @@ module.exports = (io, database, utils, getData, setData, emit) => {
       console.log()
       const id = this.createGame(data.title, data.maxPlayers, data.uid, data.maxRounds, data.isPrivate, data.ownerName)
       socket.emit('gamecreatedsuccess', id)
-
-      /* database.ref('gameStates/' + id + '/gameplayInfo').on('value', (snap) => {
-        console.log('game info update')
-        io.to(id).emit('sendgameinfo', snap.val())
-      })
-
-      database.ref('gameStates/' + id + '/players').on('value', (snap) => {
-        console.log('players update')
-        io.to(id).emit('playerlist', snap.val())
-      }) */
     },
 
     createGame (name, maxPlayer, owner, maxRounds, isPrivate, ownerName) {
@@ -201,14 +203,7 @@ module.exports = (io, database, utils, getData, setData, emit) => {
 
     applyforusername (data, socket) {
       data = utils.escapeHtml(data)
-      // name doesnt need to be unique
-      // const ref = database.ref('users').orderByChild('name').equalTo(data)
-      // ref.once('value', (snap) => {
-      // console.log(snap.val())
       if (socket === null) return
-      /* if (snap.val() != null) {
-          socket.emit('usernameunavailable', data)
-        } else { */
       const uid = 'UID' + utils.generateID()
       const secret = 'SEC' + utils.generateID()
       database.ref('users/' + uid).set({
@@ -219,8 +214,6 @@ module.exports = (io, database, utils, getData, setData, emit) => {
       }).then(() => {
         socket.emit('usernameaccepted', { uid: uid, name: data, state: '/lobby', secret: secret })
       })
-      // }
-      // })
     },
 
     clearInactiveUsers () {

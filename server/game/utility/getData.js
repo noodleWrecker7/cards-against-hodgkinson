@@ -34,6 +34,9 @@ module.exports = (database) => {
     username (uid) {
       return this.getOnce('users/' + uid + '/name')
     },
+    czar (gid) {
+      return this.getOnce('gameStates/' + gid + '/gameplayInfo/czar')
+    },
     getOnce (ref) {
       return new Promise((resolve, reject) => {
         database.ref(ref).once('value').then((snap) => {

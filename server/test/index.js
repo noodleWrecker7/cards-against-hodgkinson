@@ -94,7 +94,7 @@ describe('Server side testing', function () {
 
     beforeEach((done) => {
       // Setup
-      socketClient = io.connect(`http://[${httpServerAddr.address}]:${httpServerAddr.port}`, {
+      socketClient = io.connect(`http://localhost:${httpServerAddr.port}`, {
         'reconnection delay': 1000,
         'reopen delay': 1000,
         'force new connection': true,

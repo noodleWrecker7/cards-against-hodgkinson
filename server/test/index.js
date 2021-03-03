@@ -77,7 +77,8 @@ describe('Server side testing', function () {
           allowEIO3: true
         }
       })
-      const listened = httpServer.listen(function () {
+      const PORT = process.env.PORT || 1984
+      const listened = httpServer.listen(PORT, function () {
         done()
       })
       httpServerAddr = listened.address()

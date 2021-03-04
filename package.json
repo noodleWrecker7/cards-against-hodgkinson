@@ -8,7 +8,7 @@
     "lint": "vue-cli-service lint",
     "start": "node server/server.js",
     "server": "nodemon server/server.js --inspect --trace-warnings",
-    "test": "mocha server/test"
+    "test": "mocha test"
   },
   "dependencies": {
     "@google-cloud/debug-agent": "^5.1.3",

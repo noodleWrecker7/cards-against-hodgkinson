@@ -1,3 +1,4 @@
+// Short hands for getting data
 module.exports = (database) => {
   return {
     usersWhiteCards (uid, gid) {

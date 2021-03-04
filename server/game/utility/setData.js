@@ -1,3 +1,4 @@
+// Short hands for setting data
 module.exports = (database) => {
   return {
     userState (uid, value) {

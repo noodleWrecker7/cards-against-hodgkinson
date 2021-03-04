@@ -1,3 +1,4 @@
+// All socket.ons go here
 module.exports = (io, funcs, handleCall, cb) => {
   io.on('connection', function (socket) {
     // handle sockets

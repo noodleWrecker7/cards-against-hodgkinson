@@ -1,3 +1,4 @@
+// Various useful funcs
 module.exports = (database) => {
   console.time('Loaded black cards in')
   const blackCards = require('../../../data/black.json')

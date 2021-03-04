@@ -1,3 +1,5 @@
+// Server-side logic, generally doing things to the game and users
+
 const MAX_WHITE_CARDS = 7
 module.exports = (database, utils, getData, setData, emit) => {
   return { // Socket.io conns
@@ -62,6 +64,9 @@ module.exports = (database, utils, getData, setData, emit) => {
             break
           case 'players picking':
             updates['gameStates/' + gid + '/gameplayInfo/state'] = 'players voting'
+            this.nextCzar(gid).then(czar => {
+              setData.gamePlayerDoing(gid, czar, 'Czar')
+            })
             break
         }
         database.ref().update(updates)
@@ -69,13 +74,21 @@ module.exports = (database, utils, getData, setData, emit) => {
     },
 
     nextCzar (gid) {
-      getData.czar(gid).then((czar) => {
-        database.ref('gameStates/' + gid + '/players').orderByKey().startAfter(czar).limitToFirst(1).once('value').then((snap) => {
-          if (snap.exists()) {
-            console.log('exists')
-          } else {
-            console.log('no exist')
-          }
+      return new Promise((resolve, reject) => {
+        getData.czar(gid).then((czar) => {
+          database.ref('gameStates/' + gid + '/players').orderByKey().startAfter(czar).limitToFirst(1).once('value').then((snap) => {
+            if (snap.exists()) {
+              const id = Object.keys(snap.val())[0]
+              setData.czar(gid, id)
+              resolve(id)
+            } else { // if czar is at end of list wrap around
+              database.ref('gameStates/' + gid + '/players/').orderByKey().limitToFirst(1).once('value').then((snap2) => {
+                const id = Object.keys(snap2.val())[0]
+                setData.czar(gid, id)
+                resolve(id)
+              })
+            }
+          })
         })
       })
     },

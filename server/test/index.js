@@ -162,5 +162,23 @@ describe('Server side testing', function () {
         socketClient.emit('returningsession', { uid: 'UIDxxxxxxxxxx' })
       })
     })
+
+    describe('Game funcs', () => {
+      it('Should pick next czar', done => {
+        setData.czar('testCzar', 'a')
+        funcs.nextCzar('czarTest').then((result) => {
+          expect(result).to.equal('b')
+          done()
+        })
+      })
+      it('Should loop czar', done => {
+        setData.czar('testCzar', 'b')
+        funcs.nextCzar('czarTest').then((result) => {
+          console.log(result)
+          expect(result).to.equal('a')
+          done()
+        })
+      })
+    })
   })
 })

@@ -24,6 +24,23 @@
     }
   },
   "gameStates": {
+    "czarTest": {
+      "gameplayInfo": {
+        "czar": "a"
+      },
+      "players": {
+        "a": {
+          "name": "Adam",
+          "points": 0,
+          "hasPlayed": false
+        },
+        "b": {
+          "name": "Bob",
+          "points": 0,
+          "hasPlayed": false
+        }
+      }
+    },
     "GID1234567890": {
       "spectators": [
 

@@ -7,18 +7,18 @@ describe('Server side testing', function () {
     require('firebase/auth')
     require('firebase/database')
 
-    const firebaseConfig = require('./../../firebaseauth.json')
+    const firebaseConfig = require('../firebaseauth.json')
     firebaseConfig.databaseURL = 'https://testcardsagainsthodgkinson.europe-west1.firebasedatabase.app/'
 
     firebase.initializeApp(firebaseConfig)
     database = firebase.database()
 
-    getData = require('./../game/utility/getData')(database)
-    setData = require('./../game/utility/setData')(database)
-    utils = require('./../game/utility/utils')(database)
-    emitters = require('./../game/utility/clientEmitters')(database, getData)
-    funcs = require('./../game/gameFuncs')(database, utils, getData, setData, emitters)
-    cb = require('./../game/clientCBRequests')(getData, utils)
+    getData = require('../server/game/utility/getData')(database)
+    setData = require('../server/game/utility/setData')(database)
+    utils = require('../server/game/utility/utils')(database)
+    emitters = require('../server/game/utility/clientEmitters')(database, getData)
+    funcs = require('../server/game/gameFuncs')(database, utils, getData, setData, emitters)
+    cb = require('../server/game/clientCBRequests')(getData, utils)
 
     data = require('./testdb.json')
     expect(data).to.be.a('Object')
@@ -129,7 +129,7 @@ describe('Server side testing', function () {
     })
 
     before('Should load socket listeners', (done) => {
-      require('./../game/init/socketListeners')(ioServer, funcs, utils.handleCall, cb)
+      require('../server/game/init/socketListeners')(ioServer, funcs, utils.handleCall, cb)
       done()
     })
     // eslint-disable-next-line no-unused-vars

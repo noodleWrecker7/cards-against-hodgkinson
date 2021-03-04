@@ -25,9 +25,12 @@ describe('Server side testing', function () {
 
     database.ref().set(data).then(() => {
       done()
-    }).catch((err) => {
-      throw err
     })
+  })
+
+  after(done => {
+    database.goOffline()
+    done()
   })
 
   it('Should initialise', () => {
@@ -88,7 +91,7 @@ describe('Server side testing', function () {
     after((done) => {
       ioServer.close()
       httpServer.close()
-      database.goOffline()
+
       done()
     })
 
@@ -162,8 +165,9 @@ describe('Server side testing', function () {
         socketClient.emit('returningsession', { uid: 'UIDxxxxxxxxxx' })
       })
     })
-
-    describe('Game funcs', () => {
+  })
+  describe('Game funcs', () => {
+    describe('#nextCzar()', () => {
       it('Should pick next czar', done => {
         setData.czar('testCzar', 'a')
         funcs.nextCzar('czarTest').then((result) => {
@@ -174,9 +178,55 @@ describe('Server side testing', function () {
       it('Should loop czar', done => {
         setData.czar('testCzar', 'b')
         funcs.nextCzar('czarTest').then((result) => {
-          console.log(result)
           expect(result).to.equal('a')
           done()
+        })
+      })
+    })
+    describe('#isAllCardsPlayed()', () => {
+      it('Should resolve false', done => {
+        funcs.isAllCardsPlayed('isAllCardsPlayedTest').then((res) => {
+          expect(res).to.equal(false)
+          done()
+        })
+      })
+      it('Should resolve true', done => {
+        database.ref('gameStates/isAllCardsPlayedTest/playedCards').set({
+          UID1: [{
+            pack: 'Main Deck',
+            text: 'Friendly fire.'
+          }],
+          UID2: [{
+            pack: 'Main Deck',
+            text: 'Friendly fire.'
+          }]
+        }).then(() => {
+          funcs.isAllCardsPlayed('isAllCardsPlayedTest').then((res) => {
+            expect(res).to.equal(true)
+            done()
+          })
+        })
+      })
+      it('Should reject', done => {
+        database.ref('gameStates/isAllCardsPlayedTest/playedCards').set({
+          UID1: [{
+            pack: 'Main Deck',
+            text: 'Friendly fire.'
+          }],
+          UID2: [{
+            pack: 'Main Deck',
+            text: 'Friendly fire.'
+          }],
+          UID3: [{
+            pack: 'Main Deck',
+            text: 'Friendly fire.'
+          }]
+        }).then(() => {
+          funcs.isAllCardsPlayed('isAllCardsPlayedTest').then(() => {
+          }).catch(err => {
+            expect(err).to.be.a('Error')
+            done()
+          })
         })
       })
     })

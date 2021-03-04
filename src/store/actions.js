@@ -38,6 +38,7 @@ export default {
       context.commit('setHasSubmittedCards', false)
     }
     context.commit('setGameData', data)
+    context.commit('setIsCzar', data.czar === context.state.UID)
   },
 
   socket_playerlist (context, data) {

@@ -45,7 +45,7 @@ module.exports = (database) => {
             resolve(snap.val())
           } else {
             const err = new Error('Could not get data: ' + ref)
-            console.log(err.stack)
+            // console.log(err.stack)
             reject(err)
           }
         })

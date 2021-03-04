@@ -83,6 +83,10 @@ export default {
     voteTopCards () {
       if (this.votedwinner === '') {
         alert('You need to pick a winner')
+        return
+      }
+      if (!this.isCzar) {
+        alert('It is not your turn to pick a winner')
       }
     },
     submitCards () {
@@ -132,7 +136,8 @@ export default {
       'playerList',
       'playerWhiteCards',
       'hasSubmittedCards',
-      'topCards'
+      'topCards',
+      'isCzar'
     ]
     )
   },

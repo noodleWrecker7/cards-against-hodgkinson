@@ -243,7 +243,6 @@ module.exports = (database, utils, getData, setData, emit) => {
         callback({ failed: 'none sent' })
         return
       }
-      const updates = {}
 
       Promise.all([
         getData.gameplayInfo(gid),
@@ -258,6 +257,7 @@ module.exports = (database, utils, getData, setData, emit) => {
         }
         if (userCards.played) {
           callback({ failed: 'already played' })
+          return
         }
         const keys = Object.keys(userCards.inventory)
         const valid = cards.every(v => keys.includes(v)) // checks keys provided are actually part of inventory
@@ -265,6 +265,22 @@ module.exports = (database, utils, getData, setData, emit) => {
           callback({ failed: 'not exist' })
           return
         }
+
+        this.playCards(gid, uid, cards, userCards).then((res) => {
+          if (res === 'success') {
+            callback({ success: true })
+          }
+        })
+
+        //
+      }).catch((err) => {
+        console.log(err)
+        callback({ failed: 'unknown' })
+      })
+    },
+    playCards (gid, uid, cards, userCards) {
+      const updates = {}
+      return new Promise((resolve, reject) => {
         const cardObjs = []
         for (let i = 0; i < cards.length; i++) {
           cardObjs.push(userCards.inventory[cards[i]])
@@ -273,21 +289,42 @@ module.exports = (database, utils, getData, setData, emit) => {
 
         updates['gameStates/' + gid + '/playedCards/' + uid] = cardObjs
         database.ref().update(updates).then(() => {
-          callback({ success: true })
-          // todo check if last player to play then progress
-          Promise.all([getData.playedCards(gid), getData.whiteCardsData(gid)]).then((values) => {
-            const playedCards = values[0]
-            const whiteCards = values[1]
-            if (Object.keys(playedCards).length >= Object.keys(whiteCards).length) { // if everyone played
-              this.progressGame(gid) // go to voting stage
+          resolve('success')
+
+          this.isAllCardsPlayed(gid).then((result) => {
+            if (result) {
+              this.progressGame(gid) // should go to voting stage
             }
+          }).catch((err) => {
+            console.log(err.message)
           })
         })
-
-        //
-      }).catch((err) => {
-        console.log(err)
-        callback({ failed: 'unknown' })
+      })
+    },
+    isAllCardsPlayed (gid) {
+      return new Promise((resolve, reject) => {
+        // todo check if last player to play then progress
+        Promise.all([getData.playedCards(gid), getData.whiteCardsData(gid)]).then((values) => {
+          const playedCards = values[0]
+          const whiteCards = values[1]
+          const numOfPlayedCards = Object.keys(playedCards).length
+          const numOfPlayers = Object.keys(whiteCards).length
+          if (!playedCards) {
+            resolve(false)
+          } else if (numOfPlayedCards === numOfPlayers) { // if everyone played
+            resolve(true)
+          } else if (numOfPlayedCards < numOfPlayers) {
+            resolve(false)
+          } else {
+            reject(new Error('Error checking if all played'))
+          }
+        }).catch(err => {
+          if (err.message.includes('playedCards') && err.message.includes('Could not get data:')) {
+            resolve(false)
+          } else {
+            reject(new Error('Error getting data on played players'))
+          }
+        })
       })
     }
 

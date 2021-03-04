@@ -24,6 +24,29 @@
     }
   },
   "gameStates": {
+    "isAllCardsPlayedTest": {
+
+      "whiteCardsData": {
+        "UID1": {
+          "inventory": {
+            "-MUuaEAo-ts4Lm9mznh6" : {
+              "pack" : "Main Deck",
+              "text" : "Friendly fire."
+            }
+          },
+          "played": []
+        },
+        "UID2": {
+          "inventory": {
+            "-MUuaEAo-ts4Lm9mznh6" : {
+              "pack" : "Main Deck",
+              "text" : "Friendly fire."
+            }
+          },
+          "played": []
+        }
+      }
+    },
     "czarTest": {
       "gameplayInfo": {
         "czar": "a"

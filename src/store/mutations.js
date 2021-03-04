@@ -43,5 +43,8 @@ export default {
   },
   setHasSubmittedCards (state, data) {
     state.hasSubmittedCards = data
+  },
+  setIsCzar (state, data) {
+    state.isCzar = data
   }
 }

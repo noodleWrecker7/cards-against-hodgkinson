@@ -18,6 +18,7 @@ export default {
   methods: {
     toggleCardClicked () {
       // things
+      console.log(this.cardKey)
       this.$emit('cardclicked', this.cardKey)
     }
   }

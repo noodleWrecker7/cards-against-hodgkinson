@@ -56,6 +56,12 @@ module.exports = (io, funcs, handleCall, cb) => {
       })
     })
 
+    socket.on('czarpickcard', function (data) {
+      handleCall(data.uid, socket).then(() => {
+        funcs.czarPicksCard(data.gid, data.uid, data.winner, socket)
+      })
+    })
+
     //
     socket.on('requestwhitecards', function (data, callback) {
       // console.log('reqwhitecards')

@@ -61,12 +61,16 @@ module.exports = (database, utils, getData, setData, emit) => {
             updates['gameStates/' + gid + '/gameplayInfo/state'] = 'players picking'
             updates['gameStates/' + gid + '/gameplayInfo/round'] = 1
             this.dealCards(gid)
-            break
-          case 'players picking':
-            updates['gameStates/' + gid + '/gameplayInfo/state'] = 'players voting'
             this.nextCzar(gid).then(czar => {
               setData.gamePlayerDoing(gid, czar, 'Czar')
             })
+            break
+          case 'players picking':
+            updates['gameStates/' + gid + '/gameplayInfo/state'] = 'players voting'
+            break
+          case 'players voting':
+            updates['gameStates/' + gid + '/gameplayInfo/state'] = 'transition'
+            // todo timer
             break
         }
         database.ref().update(updates)
@@ -190,7 +194,8 @@ module.exports = (database, utils, getData, setData, emit) => {
           maxRounds: maxRounds,
           creatorUID: owner,
           playedCards: {},
-          state: 'not started'
+          state: 'not started',
+          czar: owner
         },
         players: {}
       }
@@ -257,6 +262,10 @@ module.exports = (database, utils, getData, setData, emit) => {
         }
         if (userCards.played) {
           callback({ failed: 'already played' })
+          return
+        }
+        if (gameInfo.czar === uid) {
+          callback({ failed: 'is czar' })
           return
         }
         const keys = Object.keys(userCards.inventory)
@@ -326,7 +335,32 @@ module.exports = (database, utils, getData, setData, emit) => {
           }
         })
       })
-    }
+    },
+    czarPicksCard (gid, uid, winner, socket) {
+      if (winner === '') {
+        return
+      }
+      Promise.all([getData.players(gid), getData.gameplayState(gid)]).then(values => {
+        const players = values[0]
+        const state = values[1]
+        if (state !== 'players voting') {
+          return
+        }
+        if (state.czar !== uid) {
+          return
+        }
+        if (!Object.keys(players).includes(winner)) {
+          return
+        }
 
+        this.incrementPlayerScore(gid, winner)
+        // todo set winning card
+        setData.playedCards(gid, [])
+        this.progressGame(gid)
+      })
+    },
+    incrementPlayerScore (gid, uid) {
+
+    }
   }
 }

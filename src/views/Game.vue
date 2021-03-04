@@ -21,7 +21,9 @@
           <!--          <whitecard :key="x" v-for="x in 18"/>-->
           <div :key="key" :userID="key" v-for="(user,key) in topCards">
             <whitecard @cardclicked="toggleTopCardSelected" :key="index" v-for="(card, index) in user"
-                       :card-data="card"/>
+                       :card-data="gameData.state !== 'players picking' ?card:{text:''}"
+                       :class="{selected: votedwinner === key}"
+                       :cardKey="key"/>
           </div>
         </div>
 
@@ -45,7 +47,7 @@
 <script>
 import Whitecard from '@/components/game/whitecard'
 import Blackcard from '@/components/game/blackcard'
-import { mapState } from 'vuex'
+import {mapState} from 'vuex'
 
 export default {
   name: 'Game',
@@ -87,7 +89,10 @@ export default {
       }
       if (!this.isCzar) {
         alert('It is not your turn to pick a winner')
+        return
       }
+
+      this.$socket.client.emit('czarpickcard', { uid: this.$store.state.UID, gid: this.$store.state.GID, winner: this.votedwinner })
     },
     submitCards () {
       if (this.gameData.state === 'players picking') {

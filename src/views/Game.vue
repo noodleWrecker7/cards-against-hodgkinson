@@ -92,7 +92,11 @@ export default {
         return
       }
 
-      this.$socket.client.emit('czarpickcard', { uid: this.$store.state.UID, gid: this.$store.state.GID, winner: this.votedwinner })
+      this.$socket.client.emit('czarpickcard', {
+        uid: this.$store.state.UID,
+        gid: this.$store.state.GID,
+        winner: this.votedwinner
+      })
     },
     submitCards () {
       if (this.gameData.state === 'players picking') {

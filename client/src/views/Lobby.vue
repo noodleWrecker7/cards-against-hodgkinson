@@ -34,7 +34,7 @@
 </template>
 
 <script>
-import LobbyCard from '@/components/lobby/lobbyCard'
+import LobbyCard from '../components/lobby/lobbyCard'
 import { mapState } from 'vuex'
 
 export default {

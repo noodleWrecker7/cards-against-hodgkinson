@@ -2,14 +2,14 @@ console.log('Server Starting')
 console.time('Started server in')
 
 // Setting origin header
-let origin
+let originHeader: string
 if (process.env.buildmode !== 'production') {
   console.log('Currently running on beta branch')
-  origin = '*'
+  originHeader = '*'
 } else {
   console.log('Current Build: #' + process.env.GAE_VERSION)
-  require('@google-cloud/debug-agent').start({ serviceContext: { enableCanary: false } })
-  origin = 'https://cards.adamhodgkinson.dev'
+  require('@google-cloud/debug-agent').start({serviceContext: {enableCanary: false}})
+  originHeader = 'https://cards.adamhodgkinson.dev'
 }
 
 // Loading cards
@@ -18,9 +18,9 @@ if (process.env.buildmode !== 'production') {
 const PORT = process.env.PORT || 1984
 const app = require('express')()
 const http = require('http').Server(app)
-const io = require('socket.io')(http, {
+const ioSrv = require('socket.io')(http, {
   cors: {
-    origin: origin,
+    origin: originHeader,
     methods: ['GET', 'POST'],
     allowedHeaders: ['my-custom-header'],
     credentials: true,
@@ -29,7 +29,7 @@ const io = require('socket.io')(http, {
 })
 
 // Starting firebase connection
-var warmedup = false
+let warmedup = false
 
 app.get('/_ah/warmup', (req, res) => {
   // Handle your warmup logic. Initiate db connection, etc.
@@ -37,21 +37,29 @@ app.get('/_ah/warmup', (req, res) => {
   res.send()
 })
 
-function warmup () {
+function testing(vars) {
+  console.log(vars)
+}
+
+testing(3)
+
+function warmup() {
   if (warmedup) {
     return
   }
+
   console.time('Warmed up in ')
   const firebase = require('firebase/app')
   require('firebase/auth')
   require('firebase/database')
 
-  const firebaseConfig = require('./../firebaseauth.json')
+  const firebaseConfig = require('../firebaseauth.json')
 
   firebase.initializeApp(firebaseConfig)
   const database = firebase.database()
-  require('./game')(io, database)
+  require('./game')(ioSrv, database)
   warmedup = true
+  console.log('hello')
   console.timeEnd('Warmed up in ')
 }
 
@@ -71,7 +79,9 @@ http.listen(PORT, () => {
   if (process.argv.includes('test')) {
     process.exit(0)
   }
-  if (process.env.buildmode !== 'production') { warmup() }
+  if (process.env.buildmode !== 'production') {
+    warmup()
+  }
 })
 
 app.get('/*', function (request, response) {

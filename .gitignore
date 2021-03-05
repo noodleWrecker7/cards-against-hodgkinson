@@ -23,6 +23,7 @@ pnpm-debug.log*
 *.sw?
 *.log
 /*.heapsnapshot
-/firebaseauth.json
-/travisacckey.json
+/server/firebaseauth.json
+/server/travisacckey.json
 .nyc_output
+/server/out

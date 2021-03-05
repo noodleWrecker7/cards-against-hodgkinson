@@ -1,4 +1,6 @@
 // Various useful funcs
+import firebase from 'firebase'
+
 module.exports = (database) => {
   console.time('Loaded black cards in')
   const blackCards = require('../../../data/black.json')
@@ -45,11 +47,11 @@ module.exports = (database) => {
         .replace(/£/g, '&pound;')
     },
 
-    handleCall (uid, socket) {
+    handleCall (uid:string, socket) {
       return new Promise((resolve, reject) => {
         RATE_LIMITER.consume(socket.handshake.auth.token).then(function () {
           authenticateMessage(uid, socket.handshake.auth.token, database).then(() => {
-            resolve()
+            resolve(true)
           }).catch((err) => {
             if (err.message === 'secretnotmatch') {
               socket.emit('secretnotmatch')
@@ -68,7 +70,7 @@ module.exports = (database) => {
   }
 }
 
-function authenticateMessage (uid, secret, database) {
+function authenticateMessage (uid:string, secret:string, database) {
   database.ref('users/' + uid + '/lastSeen').set(Date.now())
   return new Promise((resolve, reject) => {
     database.ref('users/' + uid + '/secret').once('value', (snap) => {
@@ -76,7 +78,7 @@ function authenticateMessage (uid, secret, database) {
         reject(new Error('usernotfound'))
       }
       if (secret === snap.val()) {
-        resolve()
+        resolve(true)
       } else {
         reject(new Error('secretnotmatch'))
       }

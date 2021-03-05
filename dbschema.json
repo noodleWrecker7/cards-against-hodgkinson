@@ -37,13 +37,15 @@
         "maxRounds": 12,
         "creatorUID": "UIDxxx",
         "playedCards": 0,
-        "state": "not started"
+        "state": "not started",
+        "czar": ""
       },
       "players": {
         "UIDxxx": {
           "name": "Adam",
           "points": 0,
-          "hasPlayed": false
+          "hasPlayed": false,
+          "doing": "Czar/Voting/Selecting"
         }
       }
     }

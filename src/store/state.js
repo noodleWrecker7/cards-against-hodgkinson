@@ -14,5 +14,6 @@ export default {
   state: '/lobby',
   playerWhiteCards: [],
   retries: 0,
-  topCards: {}
+  topCards: {},
+  hasSubmittedCards: false
 }

@@ -1,3 +1,4 @@
+// Short hands for getting data
 module.exports = (database) => {
   return {
     usersWhiteCards (uid, gid) {
@@ -34,13 +35,18 @@ module.exports = (database) => {
     username (uid) {
       return this.getOnce('users/' + uid + '/name')
     },
+    czar (gid) {
+      return this.getOnce('gameStates/' + gid + '/gameplayInfo/czar')
+    },
     getOnce (ref) {
       return new Promise((resolve, reject) => {
         database.ref(ref).once('value').then((snap) => {
           if (snap.exists()) {
             resolve(snap.val())
           } else {
-            reject(new Error('Could not get data: ' + ref))
+            const err = new Error('Could not get data: ' + ref)
+            // console.log(err.stack)
+            reject(err)
           }
         })
       })

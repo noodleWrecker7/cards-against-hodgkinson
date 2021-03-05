@@ -11,7 +11,7 @@ Vue.config.devtools = true
 
 // Vue.use(Vuex)
 var api
-if (process.env.NODE_ENV !== 'production') {
+if (process.env.buildmode !== 'production') {
   api = 'https://api.beta.cards.adamhodgkinson.dev'
 } else { api = 'api.cards.adamhodgkinson.dev' }
 const customURI = new URLSearchParams(location.search).get('apiuri')

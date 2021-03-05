@@ -1,3 +1,4 @@
+// Database update listeners
 module.exports = (io, database) => {
   database.ref('gameStates').on('child_added', (snap) => {
     const id = snap.key

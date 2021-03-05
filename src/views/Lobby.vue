@@ -84,6 +84,7 @@ export default {
   },
   mounted () {
     if (!this.$store.state.loggedIn) {
+      console.log('at lobby not logged in')
       this.$router.push('/')
     }
     this.refreshLobbies()
@@ -155,6 +156,7 @@ input {
   padding-left: 5%;
   padding-right: 5%;
   box-sizing: border-box;
+  color: #323232;
 }
 
 img {
@@ -170,7 +172,7 @@ img {
   display: flex;
   flex-flow: row wrap;
   justify-content: space-between;
-  background-color: grey;
+  background-color: dodgerblue;
 
 }
 

@@ -1,5 +1,7 @@
+// Server-side logic, generally doing things to the game and users
+
 const MAX_WHITE_CARDS = 7
-module.exports = (io, database, utils, getData, setData, emit) => {
+module.exports = (database, utils, getData, setData, emit) => {
   return { // Socket.io conns
 
     // Spaghetti starts here
@@ -53,19 +55,45 @@ module.exports = (io, database, utils, getData, setData, emit) => {
 
     progressGame (gid) {
       getData.gameplayState(gid).then((state) => {
-        switch (state) { // Omitted purely for testing
+        const updates = {}
+        switch (state) {
           case 'not started':
-            var updates = { state: 'players picking', round: 1 }
-            database.ref('gameStates/' + gid + '/gameplayInfo').update(updates)
+            updates['gameStates/' + gid + '/gameplayInfo/state'] = 'players picking'
+            updates['gameStates/' + gid + '/gameplayInfo/round'] = 1
             this.dealCards(gid)
-            break
-          case 'players picking':
-            getData.playedCards(gid).then((data) => {
-              const updates = {}
-              updates['gameStates/' + gid + '/gameplayInfo/state'] = 'players voting'
+            this.nextCzar(gid).then(czar => {
+              setData.gamePlayerDoing(gid, czar, 'Czar')
             })
             break
+          case 'players picking':
+            updates['gameStates/' + gid + '/gameplayInfo/state'] = 'players voting'
+            break
+          case 'players voting':
+            updates['gameStates/' + gid + '/gameplayInfo/state'] = 'transition'
+            // todo timer
+            break
         }
+        database.ref().update(updates)
+      })
+    },
+
+    nextCzar (gid) {
+      return new Promise((resolve, reject) => {
+        getData.czar(gid).then((czar) => {
+          database.ref('gameStates/' + gid + '/players').orderByKey().startAfter(czar).limitToFirst(1).once('value').then((snap) => {
+            if (snap.exists()) {
+              const id = Object.keys(snap.val())[0]
+              setData.czar(gid, id)
+              resolve(id)
+            } else { // if czar is at end of list wrap around
+              database.ref('gameStates/' + gid + '/players/').orderByKey().limitToFirst(1).once('value').then((snap2) => {
+                const id = Object.keys(snap2.val())[0]
+                setData.czar(gid, id)
+                resolve(id)
+              })
+            }
+          })
+        })
       })
     },
 
@@ -74,17 +102,17 @@ module.exports = (io, database, utils, getData, setData, emit) => {
         if (state.includes('GID')) {
           console.log('logged out user has a game')
           const gid = state.substring(state.indexOf('GID'), 13)
-          this.removePlayerFromGame(uid, gid, socket)
+          this.removePlayerFromGame(uid, gid, socket, '/')
         }
       })
       database.ref('users/' + uid).remove()
     },
 
-    removePlayerFromGame (uid, gid, socket) {
+    removePlayerFromGame (uid, gid, socket, newstate = '/lobby') {
       if (socket) {
         socket.leave(gid)
       }
-      setData.userState(uid, '/lobby')
+      setData.userState(uid, newstate)
       // todo implement player removing
     },
 
@@ -143,16 +171,6 @@ module.exports = (io, database, utils, getData, setData, emit) => {
       console.log()
       const id = this.createGame(data.title, data.maxPlayers, data.uid, data.maxRounds, data.isPrivate, data.ownerName)
       socket.emit('gamecreatedsuccess', id)
-
-      /* database.ref('gameStates/' + id + '/gameplayInfo').on('value', (snap) => {
-        console.log('game info update')
-        io.to(id).emit('sendgameinfo', snap.val())
-      })
-
-      database.ref('gameStates/' + id + '/players').on('value', (snap) => {
-        console.log('players update')
-        io.to(id).emit('playerlist', snap.val())
-      }) */
     },
 
     createGame (name, maxPlayer, owner, maxRounds, isPrivate, ownerName) {
@@ -176,7 +194,8 @@ module.exports = (io, database, utils, getData, setData, emit) => {
           maxRounds: maxRounds,
           creatorUID: owner,
           playedCards: {},
-          state: 'not started'
+          state: 'not started',
+          czar: owner
         },
         players: {}
       }
@@ -196,35 +215,23 @@ module.exports = (io, database, utils, getData, setData, emit) => {
             const gid = val.state.substr(val.state.indexOf('GID'), 13)
             socket.join(gid)
           }
-          const updates = { currentSocket: socket.id }
-          database.ref('users/' + uid).update(updates)
         }
       })
     },
 
     applyforusername (data, socket) {
       data = utils.escapeHtml(data)
-      // name doesnt need to be unique
-      // const ref = database.ref('users').orderByChild('name').equalTo(data)
-      // ref.once('value', (snap) => {
-      // console.log(snap.val())
       if (socket === null) return
-      /* if (snap.val() != null) {
-          socket.emit('usernameunavailable', data)
-        } else { */
       const uid = 'UID' + utils.generateID()
       const secret = 'SEC' + utils.generateID()
       database.ref('users/' + uid).set({
         UID: uid,
         name: data,
-        currentSocket: socket.id,
         secret: secret,
         state: '/lobby' // current position in the flow eg game lobby etc
       }).then(() => {
         socket.emit('usernameaccepted', { uid: uid, name: data, state: '/lobby', secret: secret })
       })
-      // }
-      // })
     },
 
     clearInactiveUsers () {
@@ -241,7 +248,6 @@ module.exports = (io, database, utils, getData, setData, emit) => {
         callback({ failed: 'none sent' })
         return
       }
-      const updates = {}
 
       Promise.all([
         getData.gameplayInfo(gid),
@@ -256,6 +262,11 @@ module.exports = (io, database, utils, getData, setData, emit) => {
         }
         if (userCards.played) {
           callback({ failed: 'already played' })
+          return
+        }
+        if (gameInfo.czar === uid) {
+          callback({ failed: 'is czar' })
+          return
         }
         const keys = Object.keys(userCards.inventory)
         const valid = cards.every(v => keys.includes(v)) // checks keys provided are actually part of inventory
@@ -263,6 +274,22 @@ module.exports = (io, database, utils, getData, setData, emit) => {
           callback({ failed: 'not exist' })
           return
         }
+
+        this.playCards(gid, uid, cards, userCards).then((res) => {
+          if (res === 'success') {
+            callback({ success: true })
+          }
+        })
+
+        //
+      }).catch((err) => {
+        console.log(err)
+        callback({ failed: 'unknown' })
+      })
+    },
+    playCards (gid, uid, cards, userCards) {
+      const updates = {}
+      return new Promise((resolve, reject) => {
         const cardObjs = []
         for (let i = 0; i < cards.length; i++) {
           cardObjs.push(userCards.inventory[cards[i]])
@@ -271,23 +298,69 @@ module.exports = (io, database, utils, getData, setData, emit) => {
 
         updates['gameStates/' + gid + '/playedCards/' + uid] = cardObjs
         database.ref().update(updates).then(() => {
-          callback({ success: true })
-          // todo check if last player to play then progress
-          Promise.all([getData.playedCards(gid), getData.whiteCardsData(gid)]).then((values) => {
-            const playedCards = values[0]
-            const whiteCards = values[1]
-            if (Object.keys(playedCards).length >= Object.keys(whiteCards).length) { // if everyone played
-              this.progressGame(gid) // go to voting stage
+          resolve('success')
+
+          this.isAllCardsPlayed(gid).then((result) => {
+            if (result) {
+              this.progressGame(gid) // should go to voting stage
             }
+          }).catch((err) => {
+            console.log(err.message)
           })
         })
-
-        //
-      }).catch((err) => {
-        console.log(err)
-        callback({ failed: 'unknown' })
       })
-    }
+    },
+    isAllCardsPlayed (gid) {
+      return new Promise((resolve, reject) => {
+        // todo check if last player to play then progress
+        Promise.all([getData.playedCards(gid), getData.whiteCardsData(gid)]).then((values) => {
+          const playedCards = values[0]
+          const whiteCards = values[1]
+          const numOfPlayedCards = Object.keys(playedCards).length
+          const numOfPlayers = Object.keys(whiteCards).length
+          if (!playedCards) {
+            resolve(false)
+          } else if (numOfPlayedCards === numOfPlayers) { // if everyone played
+            resolve(true)
+          } else if (numOfPlayedCards < numOfPlayers) {
+            resolve(false)
+          } else {
+            reject(new Error('Error checking if all played'))
+          }
+        }).catch(err => {
+          if (err.message.includes('playedCards') && err.message.includes('Could not get data:')) {
+            resolve(false)
+          } else {
+            reject(new Error('Error getting data on played players'))
+          }
+        })
+      })
+    },
+    czarPicksCard (gid, uid, winner, socket) {
+      if (winner === '') {
+        return
+      }
+      Promise.all([getData.players(gid), getData.gameplayState(gid)]).then(values => {
+        const players = values[0]
+        const state = values[1]
+        if (state !== 'players voting') {
+          return
+        }
+        if (state.czar !== uid) {
+          return
+        }
+        if (!Object.keys(players).includes(winner)) {
+          return
+        }
 
+        this.incrementPlayerScore(gid, winner)
+        // todo set winning card
+        setData.playedCards(gid, [])
+        this.progressGame(gid)
+      })
+    },
+    incrementPlayerScore (gid, uid) {
+
+    }
   }
 }

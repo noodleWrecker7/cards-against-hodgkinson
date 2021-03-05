@@ -1,7 +1,7 @@
 <template>
   <div id="game-page">
-    <div id="control-bar">Controls
-      <button v-if="$store.state.isOwner" @click="displaycontrols=!displaycontrols">
+    <div id="control-bar">
+      <button id="controlsbutton" v-if="$store.state.isOwner" @click="displaycontrols=!displaycontrols">
         {{ this.displaycontrols ? 'Hide' : 'Show' }} Controls
       </button>
     </div>
@@ -9,22 +9,27 @@
       <div id="left-section">
         <div id="black-card-container">
           <blackcard :carddata="gameData.blackCard"/>
-          <button @click="submitCards">Submit answer</button>
+          <button :disabled="hasSubmittedCards" id="submitbutton" @click="submitCards">Submit answer</button>
         </div>
         <div id="player-list-container">
           <p v-for="(player, id) in playerList" :key="id">{{ player.name }}</p>
         </div>
-        <!--      <div id="top-white-cards-container">-->
 
-        <!--      </div>-->
       </div>
       <div id="right-section">
         <div id="top-white-cards-container">
           <!--          <whitecard :key="x" v-for="x in 18"/>-->
+          <div :key="key" :userID="key" v-for="(user,key) in topCards">
+            <whitecard @cardclicked="toggleTopCardSelected" :key="index" v-for="(card, index) in user"
+                       :card-data="gameData.state !== 'players picking' ?card:{text:''}"
+                       :class="{selected: votedwinner === key}"
+                       :cardKey="key"/>
+          </div>
         </div>
 
         <div id="player-cards-container" v-if="gameData.round >0">
-          <whitecard @cardclicked="toggleCardSelected" :key="key" :cardKey="key" v-for="(card, key) in playerWhiteCards"
+          <whitecard @cardclicked="toggleBottomCardSelected" :key="key" :cardKey="key"
+                     v-for="(card, key) in playerWhiteCards"
                      :cardData="card" :class="{selected: selectedCards.includes(key)}"/>
         </div>
       </div>
@@ -54,7 +59,7 @@ export default {
     'gameID'
   ],
   methods: {
-    submitCards () {
+    playBottomCards () {
       if (this.selectedCards.length > this.gameData.blackCard.rule) {
         return
       }
@@ -65,6 +70,8 @@ export default {
       }, function (data) {
         if (data.success) {
           this.retries = 0
+          this.selectedCards = []
+          this.$store.commit('setHasSubmittedCards', true)
         } else if (data.failed) {
           if (data.failed === 'rate limit') {
             if (this.retries < 3) {
@@ -75,7 +82,40 @@ export default {
         }
       })
     },
-    toggleCardSelected (key) {
+    voteTopCards () {
+      if (this.votedwinner === '') {
+        alert('You need to pick a winner')
+        return
+      }
+      if (!this.isCzar) {
+        alert('It is not your turn to pick a winner')
+        return
+      }
+
+      this.$socket.client.emit('czarpickcard', {
+        uid: this.$store.state.UID,
+        gid: this.$store.state.GID,
+        winner: this.votedwinner
+      })
+    },
+    submitCards () {
+      if (this.gameData.state === 'players picking') {
+        this.playBottomCards()
+        return
+      }
+      if (this.gameData.czar === this.$store.state.UID) {
+        // win card
+      }
+    },
+    toggleTopCardSelected (key) {
+      console.log(key)
+      if (this.votedwinner === key) {
+        this.votedwinner = ''
+      } else {
+        this.votedwinner = key
+      }
+    },
+    toggleBottomCardSelected (key) {
       if (this.gameData.state !== 'players picking') {
         alert('Now is not the time to play your card\n;(')
         return
@@ -103,7 +143,10 @@ export default {
     ...mapState([
       'gameData',
       'playerList',
-      'playerWhiteCards'
+      'playerWhiteCards',
+      'hasSubmittedCards',
+      'topCards',
+      'isCzar'
     ]
     )
   },
@@ -111,7 +154,8 @@ export default {
     return {
       displaycontrols: false,
       selectedCards: [],
-      retries: 0
+      retries: 0,
+      votedwinner: '' // todo this
     }
   },
   sockets: {
@@ -120,7 +164,7 @@ export default {
       // this.$router.replace('//lobby')
     },
     topcards (data) {
-
+      this.$store.dispatch('setTopCards', data)
     }
   },
   mounted () {
@@ -139,6 +183,25 @@ export default {
 </script>
 
 <style scoped>
+#submitbutton {
+  background-color: #42ff42;
+  color: black;
+  border-radius: 5px;
+  border-color: #323232;
+}
+
+#controlsbutton {
+  background-color: #323232;
+  color: white;
+  border-radius: 5px;
+  border-color: #323232;
+  margin-bottom: 5px;
+}
+
+#player-list-container {
+  color: white;
+}
+
 #create-game-form {
   position: fixed;
   background-color: whitesmoke;
@@ -201,7 +264,7 @@ export default {
 }
 
 #control-bar {
-  background-color: grey;
+  background-color: dodgerblue;
 }
 
 .slide-item {

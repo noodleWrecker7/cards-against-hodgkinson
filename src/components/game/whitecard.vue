@@ -18,6 +18,7 @@ export default {
   methods: {
     toggleCardClicked () {
       // things
+      console.log(this.cardKey)
       this.$emit('cardclicked', this.cardKey)
     }
   }
@@ -26,9 +27,10 @@ export default {
 
 <style scoped>
 .selected{
-  /*border-color: blue !important;*/
+  border-color: #00e5ff !important;
   box-shadow: 5px 5px 5px 2px #0e0e0e;
-  background-color: #eaeaea !important;
+  background-color: #acacac !important;
+
 }
 .card-text {
   position: absolute;
@@ -43,7 +45,7 @@ export default {
 
 .card-itself {
   border-radius: 20px;
-  border: solid 1px black;
+  border: solid 2px;
   background-color: whitesmoke;
   /*max-width: 10em;
   max-height:15em;

@@ -45,8 +45,8 @@
 </template>
 
 <script>
-import Whitecard from '@/components/game/whitecard'
-import Blackcard from '@/components/game/blackcard'
+import Whitecard from '../components/game/whitecard'
+import Blackcard from '../components/game/blackcard'
 import { mapState } from 'vuex'
 
 export default {

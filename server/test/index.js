@@ -13,12 +13,13 @@ describe('Server side testing', function () {
     firebase.initializeApp(firebaseConfig)
     database = firebase.database()
 
-    getData = require('../server/game/utility/getData')(database)
-    setData = require('../server/game/utility/setData')(database)
-    utils = require('../server/game/utility/utils')(database)
-    emitters = require('../server/game/utility/clientEmitters')(database, getData)
-    funcs = require('../server/game/gameFuncs')(database, utils, getData, setData, emitters)
-    cb = require('../server/game/clientCBRequests')(getData, utils)
+    const gameRoot = '../out/game/'
+    getData = require(gameRoot + 'utility/getData')(database)
+    setData = require(gameRoot + 'utility/setData')(database)
+    utils = require(gameRoot + 'utility/utils')(database)
+    emitters = require(gameRoot + 'utility/clientEmitters')(database, getData)
+    funcs = require(gameRoot + 'gameFuncs')(database, utils, getData, setData, emitters)
+    cb = require(gameRoot + 'clientCBRequests')(getData, utils)
 
     data = require('./testdb.json')
     expect(data).to.be.a('Object')
@@ -129,7 +130,7 @@ describe('Server side testing', function () {
     })
 
     before('Should load socket listeners', (done) => {
-      require('../server/game/init/socketListeners')(ioServer, funcs, utils.handleCall, cb)
+      require('../out/game/init/socketListeners')(ioServer, funcs, utils.handleCall, cb)
       done()
     })
     // eslint-disable-next-line no-unused-vars

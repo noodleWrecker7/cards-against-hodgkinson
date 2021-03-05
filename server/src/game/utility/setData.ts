@@ -14,7 +14,7 @@ module.exports = (database) => {
       return this.set('gameStates/' + gid + '/players/' + uid + '/doing', value)
     },
     playerScore (gid, uid, value) {
-      return this.set('gameStates/' + gid + '/players/' + uid + '/points')
+      return this.set('gameStates/' + gid + '/players/' + uid + '/points', value)
     },
     playedCards (gid, value) {
       return this.set('gameStates/' + gid + '/playedCards', value)

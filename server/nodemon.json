@@ -8,7 +8,9 @@
     "restart": "node -e console.clear() && osascript -e 'display notification \"App restarted due to:\n'$FILENAME'\" with title \"nodemon\"'"
   },
   "watch": [
-    "server/"
+    "src/",
+    "nodemon.json",
+    "tsconfig.json"
   ],
   "env": {
     "NODE_ENV": "development"

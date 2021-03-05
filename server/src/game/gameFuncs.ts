@@ -97,7 +97,7 @@ module.exports = (database, utils, getData, setData, emit) => {
       })
     },
 
-    logout (uid, socket) {
+    logout (uid, socket?) {
       getData.userState(uid).then((state) => {
         if (state.includes('GID')) {
           console.log('logged out user has a game')
@@ -160,7 +160,7 @@ module.exports = (database, utils, getData, setData, emit) => {
           updates['users/' + uid + '/state'] = '/game/' + gid
 
           database.ref().update(updates).then(() => {
-            resolve()
+            resolve(true)
           })
         })
       })
@@ -290,8 +290,8 @@ module.exports = (database, utils, getData, setData, emit) => {
     playCards (gid, uid, cards, userCards) {
       const updates = {}
       return new Promise((resolve, reject) => {
-        const cardObjs = []
-        for (let i = 0; i < cards.length; i++) {
+        const cardObjs:Object[] = []
+        for (let i:number = 0; i < cards.length; i++) {
           cardObjs.push(userCards.inventory[cards[i]])
           updates['gameStates/' + gid + '/whiteCardsData/' + uid + '/inventory/' + cards[i]] = null
         }

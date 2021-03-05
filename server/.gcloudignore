@@ -18,7 +18,7 @@ node_modules/
 
 #clientside
 src/
-public/
+client/public/
 netlify.toml
 
 dbschema.json

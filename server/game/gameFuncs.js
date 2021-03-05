@@ -355,12 +355,22 @@ module.exports = (database, utils, getData, setData, emit) => {
 
         this.incrementPlayerScore(gid, winner)
         // todo set winning card
-        setData.playedCards(gid, [])
+        // setData.playedCards(gid, [])
+
         this.progressGame(gid)
       })
     },
+    removeLosingCards (gid, winner) {
+      return new Promise((resolve, reject) => {
+        getData.usersPlayedCards(gid, winner).then(data => {
+          setData.playedCards(gid, { [winner]: data })
+        })
+      })
+    },
     incrementPlayerScore (gid, uid) {
-
+      getData.playerScore(gid, uid).then(score => {
+        setData.playerScore(gid, uid, score + 1)
+      })
     }
   }
 }

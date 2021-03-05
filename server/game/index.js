@@ -10,5 +10,7 @@ module.exports = (io, database) => {
 
   require('./init/socketListeners')(io, funcs, utils.handleCall, cb)
 
-  setInterval(funcs.clearInactiveUsers, 1800000)
+  setInterval(function () {
+    funcs.clearInactiveUsers()
+  }, 1800000)
 }

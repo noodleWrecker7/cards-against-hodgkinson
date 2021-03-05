@@ -17,6 +17,9 @@ module.exports = (database) => {
     gamePlayers (gid) {
       return this.getOnce('gameStates/' + gid + '/players')
     },
+    playerScore (gid, uid) {
+      return this.getOnce('gameStates/' + gid + '/players/' + uid + '/points')
+    },
     userState (uid) {
       return this.getOnce('users/' + uid + '/state')
     },
@@ -28,6 +31,9 @@ module.exports = (database) => {
     },
     playedCards (gid) {
       return this.getOnce('gameStates/' + gid + '/playedCards')
+    },
+    usersPlayedCards (gid, uid) {
+      return this.getOnce('gameStates/' + gid + '/playedCards/' + uid)
     },
     gameplayState (gid) {
       return this.getOnce('gameStates/' + gid + '/gameplayInfo/state')

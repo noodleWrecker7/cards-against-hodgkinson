@@ -24,23 +24,38 @@
     }
   },
   "gameStates": {
+    "removeCardsTest": {
+      "playedCards": {
+        "a": [{
+          "pack": "Main Deck",
+          "text": "card a"
+        }],
+        "b": [{
+          "pack": "Main Deck",
+          "text": "card b"
+        }],
+        "c": [{
+          "pack": "Main Deck",
+          "text": "card c"
+        }]
+      }
+    },
     "isAllCardsPlayedTest": {
-
       "whiteCardsData": {
         "UID1": {
           "inventory": {
-            "-MUuaEAo-ts4Lm9mznh6" : {
-              "pack" : "Main Deck",
-              "text" : "Friendly fire."
+            "-MUuaEAo-ts4Lm9mznh6": {
+              "pack": "Main Deck",
+              "text": "Friendly fire."
             }
           },
           "played": []
         },
         "UID2": {
           "inventory": {
-            "-MUuaEAo-ts4Lm9mznh6" : {
-              "pack" : "Main Deck",
-              "text" : "Friendly fire."
+            "-MUuaEAo-ts4Lm9mznh6": {
+              "pack": "Main Deck",
+              "text": "Friendly fire."
             }
           },
           "played": []
@@ -66,7 +81,6 @@
     },
     "GID1234567890": {
       "spectators": [
-
       ],
       "whiteCardsData": {
         "UIDxxx": {

@@ -1,7 +1,7 @@
 // Short hands for getting data
 module.exports = (database) => {
   return {
-    usersWhiteCards (uid, gid) {
+    usersWhiteCards (uid: string, gid: string) {
       return this.getOnce('/gameStates/' + gid + '/whiteCardsData/' + uid)
     },
     lobbies () {
@@ -11,47 +11,47 @@ module.exports = (database) => {
         })
       })
     },
-    whiteCardsData (gid) {
+    whiteCardsData (gid: string) {
       return this.getOnce('gameStates/' + gid + '/whiteCardsData')
     },
-    gamePlayers (gid) {
+    gamePlayers (gid: string) {
       return this.getOnce('gameStates/' + gid + '/players')
     },
-    playerScore (gid, uid) {
+    playerScore (gid: string, uid: string) {
       return this.getOnce('gameStates/' + gid + '/players/' + uid + '/points')
     },
-    userState (uid) {
+    userState (uid: string) {
       return this.getOnce('users/' + uid + '/state')
     },
-    game (gid) {
+    game (gid: string) {
       return this.getOnce('gameStates/' + gid)
     },
-    gameplayInfo (gid) {
+    gameplayInfo (gid: string) {
       return this.getOnce('gameStates/' + gid + '/gameplayInfo')
     },
-    playedCards (gid) {
+    playedCards (gid: string) {
       return this.getOnce('gameStates/' + gid + '/playedCards')
     },
-    usersPlayedCards (gid, uid) {
+    usersPlayedCards (gid: string, uid: string) {
       return this.getOnce('gameStates/' + gid + '/playedCards/' + uid)
     },
-    gameplayState (gid) {
+    gameplayState (gid: string) {
       return this.getOnce('gameStates/' + gid + '/gameplayInfo/state')
     },
-    username (uid) {
+    username (uid: string) {
       return this.getOnce('users/' + uid + '/name')
     },
-    czar (gid) {
+    czar (gid: string) {
       return this.getOnce('gameStates/' + gid + '/gameplayInfo/czar')
     },
-    getOnce (ref) {
+    getOnce (ref: string) {
       return new Promise((resolve, reject) => {
         database.ref(ref).once('value').then((snap) => {
           if (snap.exists()) {
             resolve(snap.val())
           } else {
             const err = new Error('Could not get data: ' + ref)
-            // console.log(err.stack)
+            console.log(err.stack)
             reject(err)
           }
         })

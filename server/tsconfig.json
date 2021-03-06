@@ -9,7 +9,9 @@
     "strict": true,
     "allowJs": true,
     "noImplicitAny": false,
-    "esModuleInterop": true
+    "esModuleInterop": true,
+    "types": ["mocha", "node"],
+    "lib": ["ES2020", "DOM"]
   },
   "include": ["src/**/*"],
   "exclude": [

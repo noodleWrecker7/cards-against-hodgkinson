@@ -18,7 +18,7 @@ describe('Server side testing', function () {
     setData = require(gameRoot + 'utility/setData')(database)
     utils = require(gameRoot + 'utility/utils')(database)
     emitters = require(gameRoot + 'utility/clientEmitters')(database, getData)
-    funcs = require(gameRoot + 'gameFuncs')(database, utils, getData, setData, emitters)
+    funcs = require('../out/game/gameFuncs')(database, utils, getData, setData, emitters)
     cb = require(gameRoot + 'clientCBRequests')(getData, utils)
 
     data = require('./testdb.json')
@@ -226,6 +226,53 @@ describe('Server side testing', function () {
           funcs.isAllCardsPlayed('isAllCardsPlayedTest').then(() => {
           }).catch(err => {
             expect(err).to.be.a('Error')
+            done()
+          })
+        })
+      })
+    })
+
+    describe('#removeLosingCards()', () => {
+      beforeEach((done) => {
+        database.ref('gameStates/removeCardsTest/playedCards').set({
+          a: [{
+            pack: 'Main Deck',
+            text: 'card a'
+          }],
+          b: [{
+            pack: 'Main Deck',
+            text: 'card b'
+          }],
+          c: [{
+            pack: 'Main Deck',
+            text: 'card c'
+          }]
+
+        }).then(() => {
+          done()
+        })
+      })
+      it('Should leave card a', done => {
+        funcs.removeLosingCards('removeCardsTest', 'a').then((success) => {
+          getData.playedCards('removeCardsTest').then(data => {
+            expect(data).to.have.property('a')
+            expect(data.a[0]).to.have.property('text')
+            done()
+          })
+        })
+      })
+      it('Should leave card b', done => {
+        funcs.removeLosingCards('removeCardsTest', 'b').then(() => {
+          getData.playedCards('removeCardsTest').then(data => {
+            expect(data).to.have.property('b')
+            done()
+          })
+        })
+      })
+      it('Should leave card c', done => {
+        funcs.removeLosingCards('removeCardsTest', 'c').then(() => {
+          getData.playedCards('removeCardsTest').then(data => {
+            expect(data).to.have.property('c')
             done()
           })
         })

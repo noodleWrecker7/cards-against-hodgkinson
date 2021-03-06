@@ -174,9 +174,9 @@ module.exports = (database, utils, getData, setData, emit) => {
     },
 
     createGame (name, maxPlayer, owner, maxRounds, isPrivate, ownerName) {
-      var id = 'GID' + utils.generateID()
-      var display = { name: name, ownerName: ownerName, playerCount: 1, maxPlayers: maxPlayer, isPrivate: isPrivate }
-      var gameState = {
+      const id = 'GID' + utils.generateID()
+      const display = { name: name, ownerName: ownerName, playerCount: 1, maxPlayers: maxPlayer, isPrivate: isPrivate }
+      const gameState = {
         name: name,
         spectators: [],
         whiteCardsData: {
@@ -237,8 +237,9 @@ module.exports = (database, utils, getData, setData, emit) => {
     clearInactiveUsers () {
       // 1800000
       const cutoff = Date.now() - 1800000 // 30 mins ago
+      const _logout = this.logout
       database.ref('users').orderByChild('lastSeen').endBefore(cutoff).once('value').then((snap) => {
-        this.logout(snap.key)
+        _logout(snap.key)
       })
     },
 
@@ -290,8 +291,8 @@ module.exports = (database, utils, getData, setData, emit) => {
     playCards (gid, uid, cards, userCards) {
       const updates = {}
       return new Promise((resolve, reject) => {
-        const cardObjs:Object[] = []
-        for (let i:number = 0; i < cards.length; i++) {
+        const cardObjs: Record<string, unknown>[] = []
+        for (let i = 0; i < cards.length; i++) {
           cardObjs.push(userCards.inventory[cards[i]])
           updates['gameStates/' + gid + '/whiteCardsData/' + uid + '/inventory/' + cards[i]] = null
         }
@@ -336,34 +337,40 @@ module.exports = (database, utils, getData, setData, emit) => {
         })
       })
     },
-    czarPicksCard (gid, uid, winner, socket) {
-      if (winner === '') {
+    czarPicksCard (gid: string, czaruid: string, winneruid: string, socket) {
+      if (winneruid === '') {
         return
       }
-      Promise.all([getData.players(gid), getData.gameplayState(gid)]).then(values => {
+      Promise.all([getData.gamePlayers(gid), getData.gameplayState(gid)]).then(values => {
         const players = values[0]
         const state = values[1]
         if (state !== 'players voting') {
           return
         }
-        if (state.czar !== uid) {
+        if (state.czar !== czaruid) {
           return
         }
-        if (!Object.keys(players).includes(winner)) {
+        if (!Object.keys(players).includes(winneruid)) {
           return
         }
 
-        this.incrementPlayerScore(gid, winner)
+        this.incrementPlayerScore(gid, winneruid)
         // todo set winning card
         // setData.playedCards(gid, [])
-
+        this.removeLosingCards(gid, winneruid)
         this.progressGame(gid)
       })
     },
-    removeLosingCards (gid, winner) {
+    testfunc () { console.log('aaaahhhh') },
+    removeLosingCards (gid:string, winner:string) {
       return new Promise((resolve, reject) => {
         getData.usersPlayedCards(gid, winner).then(data => {
-          setData.playedCards(gid, { [winner]: data })
+          setData.playedCards(gid, { [winner]: data }).then(() => {
+            resolve(true)
+          })
+        }).catch(err => {
+          console.warn('Failed to remove losing cards at ' + { gid })
+          reject(err)
         })
       })
     },

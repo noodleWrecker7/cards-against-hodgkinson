@@ -1,3 +1,16 @@
+import { start } from '@google-cloud/debug-agent'
+
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+// @ts-ignore
+import express, { Request, Response } from 'express'
+
+import { Server } from 'http'
+import { Server as Io } from 'socket.io'
+
+import firebase from 'firebase/app'
+
+import game from './game'
+
 console.log('Server Starting')
 console.time('Started server in')
 
@@ -8,7 +21,7 @@ if (process.env.buildmode !== 'production') {
   originHeader = '*'
 } else {
   console.log('Current Build: #' + process.env.GAE_VERSION)
-  require('@google-cloud/debug-agent').start({serviceContext: {enableCanary: false}})
+  start({ serviceContext: { enableCanary: false } })
   originHeader = 'https://cards.adamhodgkinson.dev'
 }
 
@@ -16,32 +29,25 @@ if (process.env.buildmode !== 'production') {
 
 // Starting request handler
 const PORT = process.env.PORT || 1984
-const app = require('express')()
-const http = require('http').Server(app)
-const ioSrv = require('socket.io')(http, {
+const app = express()
+const http = new Server(app)
+const ioSrv = new Io(http, {
   cors: {
     origin: originHeader,
     methods: ['GET', 'POST'],
     allowedHeaders: ['my-custom-header'],
     credentials: true,
-    allowEIO3: true
-  }
+  },
 })
 
 // Starting firebase connection
 let warmedup = false
 
-app.get('/_ah/warmup', (req, res) => {
+app.get('/_ah/warmup', (req: Request, res: Response) => {
   // Handle your warmup logic. Initiate db connection, etc.
   warmup()
   res.send()
 })
-
-function testing(vars) {
-  console.log(vars)
-}
-
-testing(3)
 
 function warmup() {
   if (warmedup) {
@@ -49,21 +55,21 @@ function warmup() {
   }
 
   console.time('Warmed up in ')
-  const firebase = require('firebase/app')
   require('firebase/auth')
   require('firebase/database')
 
+  // eslint-disable-next-line @typescript-eslint/no-var-requires
   const firebaseConfig = require('../firebaseauth.json')
 
   firebase.initializeApp(firebaseConfig)
   const database = firebase.database()
-  require('./game')(ioSrv, database)
+  game(ioSrv, database)
   warmedup = true
   console.log('hello')
   console.timeEnd('Warmed up in ')
 }
 
-app.get('/_ah/start', (req, res) => {
+app.get('/_ah/start', (req: Request, res: Response) => {
   // Handle your warmup logic. Initiate db connection, etc.
   if (!warmedup) {
     warmup()
@@ -84,7 +90,9 @@ http.listen(PORT, () => {
   }
 })
 
-app.get('/*', function (request, response) {
+app.get('/*', function (request: Request, response: Response) {
   console.log(request.path)
-  response.send('<html lang="uk"><script>window.location.href="https://cards.adamhodgkinson.dev?apiuri=" + window.location.hostname</script></html>')
+  response.send(
+    '<html lang="uk"><script>window.location.href="https://cards.adamhodgkinson.dev?apiuri=" + window.location.hostname</script></html>'
+  )
 })

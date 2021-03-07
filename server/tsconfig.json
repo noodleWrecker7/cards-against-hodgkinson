@@ -8,12 +8,19 @@
     "outDir": "out",
     "strict": true,
     "allowJs": true,
-    "noImplicitAny": false,
+    "noImplicitAny": true,
     "esModuleInterop": true,
     "types": ["mocha", "node"],
-    "lib": ["ES2020", "DOM"]
+    "lib": ["ES2020", "DOM"],
+    "resolveJsonModule": true,
+    "typeRoots": ["types"],
+    "incremental": true,
+    "tsBuildInfoFile": ".tsbuildinfo"
   },
-  "include": ["src/**/*"],
+  "include": [
+    "src/**/*",
+    "types/**/*"
+  ],
   "exclude": [
     "../node_modules",
     "out"

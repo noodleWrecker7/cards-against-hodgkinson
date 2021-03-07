@@ -1,7 +1,10 @@
 // Database update listeners
-module.exports = (io, database) => {
+import firebase from 'firebase'
+import { Server } from 'socket.io'
+type Database = firebase.database.Database;
+export default (io:Server, database:Database) => {
   database.ref('gameStates').on('child_added', (snap) => {
-    const id = snap.key
+    const id:string = <string> snap.key
     database.ref('gameStates/' + id + '/gameplayInfo').on('value', (snap) => {
       console.log('game info update')
       console.log({ id })

@@ -68,12 +68,12 @@ export default {
         gid: this.$store.state.GID,
         cards: this.selectedCards
       }, function (data) {
-        if (data.success) {
+        if (data.data) {
           this.retries = 0
           this.selectedCards = []
           this.$store.commit('setHasSubmittedCards', true)
-        } else if (data.failed) {
-          if (data.failed === 'rate limit') {
+        } else if (data.error) {
+          if (data.error === 'rate limit') {
             if (this.retries < 3) {
               this.retries++
               setTimeout(this.submitCards, 2000)

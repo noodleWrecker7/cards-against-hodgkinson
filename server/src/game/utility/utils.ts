@@ -1,90 +1,116 @@
 // Various useful funcs
 import firebase from 'firebase'
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+// @ts-ignore
+import blackCards from '../../../data/black.json'
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+// @ts-ignore
+import whiteCards from '../../../data/white.json'
+import { RateLimiterMemory } from 'rate-limiter-flexible'
+import { Socket } from 'socket.io'
+import { cardType, Utils } from '../../../types'
 
-module.exports = (database) => {
-  console.time('Loaded black cards in')
-  const blackCards = require('../../../data/black.json')
-  const blackCardsLength = blackCards.length
-  console.timeEnd('Loaded black cards in')
+type Database = firebase.database.Database
 
-  console.time('Loaded white cards in')
-  const whiteCards = require('../../../data/white.json')
-  const whiteCardsLength = whiteCards.length
-  console.timeEnd('Loaded white cards in')
+export default (database: Database): Utils => {
+  return new _Utils(database)
+}
 
-  const { RateLimiterMemory } = require('rate-limiter-flexible')
-  const RATE_LIMITER = new RateLimiterMemory({
+class _Utils implements Utils {
+  blackCardsLength: number
+  whiteCardsLength: number
+  database: Database
+
+  RATE_LIMITER = new RateLimiterMemory({
     points: 15,
-    duration: 1 // per sec
+    duration: 1, // per sec
   })
 
-  return {
-    getBlackCard () {
-      const r = Math.floor(Math.random() * blackCardsLength)
-      return blackCards[r]
-    },
+  constructor(database: Database) {
+    this.database = database
+    console.time('Loaded black cards in')
+    this.blackCardsLength = blackCards.length
+    console.timeEnd('Loaded black cards in')
 
-    // eslint-disable-next-line no-unused-vars
-    getWhiteCard () {
-      const r = Math.floor(Math.random() * whiteCardsLength)
-      return whiteCards[r]
-    },
-    generateID () {
-      const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz1234567890-'
-      let str = (new Date()).toTimeString().substr(0, 8).replace(/:/g, '')
-      for (let i = 0; i < 4; i++) {
-        str += chars.charAt(Math.floor(Math.random() * chars.length))
-      }
-      return str
-    },
-    escapeHtml (unsafe) {
-      return unsafe
-        .replace(/&/g, '&amp;')
-        .replace(/</g, '&lt;')
-        .replace(/>/g, '&gt;')
-        .replace(/"/g, '&quot;')
-        .replace(/'/g, '&#039;')
-        .replace(/£/g, '&pound;')
-    },
+    console.time('Loaded white cards in')
+    this.whiteCardsLength = whiteCards.length
+    console.timeEnd('Loaded white cards in')
+  }
 
-    handleCall (uid:string, socket) {
-      return new Promise((resolve, reject) => {
-        RATE_LIMITER.consume(socket.handshake.auth.token).then(function () {
-          authenticateMessage(uid, socket.handshake.auth.token, database).then(() => {
-            resolve(true)
-          }).catch((err) => {
-            if (err.message === 'secretnotmatch') {
-              socket.emit('secretnotmatch')
-            } else if (err.message === 'usernotfound') {
-              socket.emit('returningsessioninvalid')
-            }
-          })
-        }).catch((err) => {
+  getBlackCard(): cardType {
+    const r = Math.floor(Math.random() * this.blackCardsLength)
+    return blackCards[r]
+  }
+
+  // eslint-disable-next-line no-unused-vars
+  getWhiteCard(): cardType {
+    const r = Math.floor(Math.random() * this.whiteCardsLength)
+    return whiteCards[r]
+  }
+
+  generateID(): string {
+    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz1234567890-'
+    let str = new Date().toTimeString().substr(0, 8).replace(/:/g, '')
+    for (let i = 0; i < 4; i++) {
+      str += chars.charAt(Math.floor(Math.random() * chars.length))
+    }
+    return str
+  }
+
+  escapeHtml(unsafe: string): string {
+    return unsafe
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#039;')
+      .replace(/£/g, '&pound;')
+  }
+
+  handleCall(uid: string, socket: Socket): Promise<boolean> {
+    return new Promise((resolve, reject) => {
+      this.RATE_LIMITER.consume(socket.handshake.auth.token)
+        .then(() => {
+          this.authenticateMessage(uid, socket.handshake.auth.token)
+            .then(() => {
+              resolve(true)
+            })
+            .catch((err: Error) => {
+              if (err.message === 'secretnotmatch') {
+                socket.emit('secretnotmatch')
+              } else if (err.message === 'usernotfound') {
+                socket.emit('returningsessioninvalid')
+              }
+            })
+        })
+        .catch((err: Error) => {
           console.log(err)
           console.log(err.stack)
           console.trace()
           reject(new Error('rate limit'))
         })
-      })
-    }
-  }
-}
-
-function authenticateMessage (uid:string, secret:string, database) {
-  database.ref('users/' + uid + '/lastSeen').set(Date.now())
-  return new Promise((resolve, reject) => {
-    database.ref('users/' + uid + '/secret').once('value', (snap) => {
-      if (!snap.exists()) {
-        reject(new Error('usernotfound'))
-      }
-      if (secret === snap.val()) {
-        resolve(true)
-      } else {
-        reject(new Error('secretnotmatch'))
-      }
-    }).catch((reason) => {
-      console.log(reason)
-      reject(new Error('usernotfound'))
     })
-  })
+  }
+
+  authenticateMessage(uid: string, secret: string): Promise<boolean> {
+    this.database.ref('users/' + uid + '/lastSeen').set(Date.now())
+    return new Promise((resolve, reject) => {
+      this.database
+        .ref('users/' + uid + '/secret')
+        .once('value', (snap) => {
+          if (!snap.exists()) {
+            reject(new Error('usernotfound'))
+          }
+          if (secret === snap.val()) {
+            resolve(true)
+          } else {
+            reject(new Error('secretnotmatch'))
+          }
+        })
+        .catch((reason) => {
+          console.log(reason)
+          reject(new Error('usernotfound'))
+        })
+    })
+  }
 }

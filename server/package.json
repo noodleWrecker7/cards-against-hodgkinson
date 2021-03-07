@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "start": "npm run check-types && node out/server.js",
-    "server": "nodemon start",
+    "server": "nodemon start -L",
     "check-types": "tsc",
     "test": "tsc && mocha out/test",
     "watch": "tsc -w"

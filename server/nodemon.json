@@ -1,20 +1,17 @@
 {
   "ignore": [
     ".git",
-    "node_modules/**/node_modules"
+    "node_modules/**/node_modules",
+    "node_modules",
+    "out",
+    "out/**/*",
+    "**/out"
   ],
-  "ext": "ts,js",
+  "ext": "js,ts",
   "verbose": true,
   "events": {
     "restart": "node -e console.clear() && osascript -e 'display notification \"App restarted due to:\n'$FILENAME'\" with title \"nodemon\"'"
   },
-  "watch": [
-    "src/",
-    "out/",
-    "types/",
-    "nodemon.json",
-    "tsconfig.json"
-  ],
   "env": {
     "NODE_ENV": "development"
   }

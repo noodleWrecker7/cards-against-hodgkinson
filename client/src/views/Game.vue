@@ -21,7 +21,7 @@
           <!--          <whitecard :key="x" v-for="x in 18"/>-->
           <div :key="key" :userID="key" v-for="(user,key) in topCards">
             <whitecard @cardclicked="toggleTopCardSelected" :key="index" v-for="(card, index) in user"
-                       :card-data="gameData.state !== 'players picking' ?card:{text:''}"
+                       :card-data="gameData.state !== 1 ?card:{text:''}"
                        :class="{selected: votedwinner === key}"
                        :cardKey="key"/>
           </div>
@@ -99,7 +99,7 @@ export default {
       })
     },
     submitCards () {
-      if (this.gameData.state === 'players picking') {
+      if (this.gameData.state === 1) {
         this.playBottomCards()
         return
       }
@@ -116,7 +116,7 @@ export default {
       }
     },
     toggleBottomCardSelected (key) {
-      if (this.gameData.state !== 'players picking') {
+      if (this.gameData.state !== 1) {
         alert('Now is not the time to play your card\n;(')
         return
       }

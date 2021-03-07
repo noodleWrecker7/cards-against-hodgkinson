@@ -2,7 +2,7 @@
 import firebase from 'firebase'
 import { userWhiteCardsType, GetData, gameDisplayInfo } from '../../../types'
 
-type Database = firebase.database.Database;
+type Database = firebase.database.Database
 export default (database: Database): GetData => {
   return new _GetData(database)
 }
@@ -10,80 +10,90 @@ export default (database: Database): GetData => {
 class _GetData implements GetData {
   database: Database
 
-  constructor (database: Database) {
+  constructor(database: Database) {
     this.database = database
   }
 
-  usersWhiteCards (uid: string, gid: string): Promise<userWhiteCardsType> {
+  roundNum(gid: string): Promise<number> {
+    return this.getOnce('gameStates/' + gid + '/gameplayInfo/round')
+  }
+
+  usersWhiteCards(uid: string, gid: string): Promise<userWhiteCardsType> {
     return this.getOnce('/gameStates/' + gid + '/whiteCardsData/' + uid)
   }
 
-  lobbies (): Promise<{ [gid: string]: gameDisplayInfo }> {
+  lobbies(): Promise<{ [gid: string]: gameDisplayInfo }> {
     return new Promise((resolve) => {
-      this.database.ref('gameDisplayInfo').orderByChild('isPrivate').equalTo(false).once('value', (snap) => {
-        resolve(snap.val())
-      })
+      this.database
+        .ref('gameDisplayInfo')
+        .orderByChild('isPrivate')
+        .equalTo(false)
+        .once('value', (snap) => {
+          resolve(snap.val())
+        })
     })
   }
 
-  whiteCardsData (gid: string) {
+  whiteCardsData(gid: string) {
     return this.getOnce('gameStates/' + gid + '/whiteCardsData')
   }
 
-  gamePlayers (gid: string) {
+  gamePlayers(gid: string) {
     return this.getOnce('gameStates/' + gid + '/players')
   }
 
-  playerScore (gid: string, uid: string) {
+  playerScore(gid: string, uid: string) {
     return this.getOnce('gameStates/' + gid + '/players/' + uid + '/points')
   }
 
-  userState (uid: string) {
+  userState(uid: string) {
     return this.getOnce('users/' + uid + '/state')
   }
 
-  game (gid: string) {
+  game(gid: string) {
     return this.getOnce('gameStates/' + gid)
   }
 
-  gameplayInfo (gid: string) {
+  gameplayInfo(gid: string) {
     return this.getOnce('gameStates/' + gid + '/gameplayInfo')
   }
 
-  playedCards (gid: string) {
+  playedCards(gid: string) {
     return this.getOnce('gameStates/' + gid + '/playedCards')
   }
 
-  usersPlayedCards (gid: string, uid: string) {
+  usersPlayedCards(gid: string, uid: string) {
     return this.getOnce('gameStates/' + gid + '/playedCards/' + uid)
   }
 
-  gameplayState (gid: string) {
+  gameplayState(gid: string) {
     return this.getOnce('gameStates/' + gid + '/gameplayInfo/state')
   }
 
-  username (uid: string) {
+  username(uid: string) {
     return this.getOnce('users/' + uid + '/name')
   }
 
-  czar (gid: string) {
+  czar(gid: string) {
     return this.getOnce('gameStates/' + gid + '/gameplayInfo/czar')
   }
 
-  private getOnce (ref: string): Promise<any> {
+  private getOnce(ref: string): Promise<any> {
     return new Promise((resolve, reject) => {
-      this.database.ref(ref).once('value').then((snap) => {
-        if (snap.exists()) {
-          resolve(snap.val())
-        } else {
-          const err = new Error('Could not get data: ' + ref)
-          console.log(err.stack)
-          reject(err)
-        }
-      })
+      this.database
+        .ref(ref)
+        .once('value')
+        .then((snap) => {
+          if (snap.exists()) {
+            resolve(snap.val())
+          } else {
+            const err = new Error('Could not get data: ' + ref)
+            console.log(err.stack)
+            reject(err)
+          }
+        })
     })
   }
 }
 
-export class _getData {
-}
+export class _getData {}

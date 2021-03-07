@@ -73,10 +73,11 @@ export default {
 </script>
 
 <style>
-.themetogglebutton{
+.themetogglebutton {
   border: none;
   background: none;
 }
+
 .themetoggleimage {
   width: 2em
 }

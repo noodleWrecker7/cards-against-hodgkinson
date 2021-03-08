@@ -13,16 +13,16 @@
     "types": ["mocha", "node"],
     "lib": ["ES2020", "DOM"],
     "resolveJsonModule": true,
-    "typeRoots": ["types"],
-    "incremental": true,
-    "tsBuildInfoFile": ".tsbuildinfo"
+    "typeRoots": [
+      "types"
+    ]
   },
   "include": [
     "src/**/*",
     "types/**/*"
   ],
   "exclude": [
-    "../node_modules",
+    "../node_modules"
 
   ]
 }

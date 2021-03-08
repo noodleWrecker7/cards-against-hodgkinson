@@ -6,7 +6,6 @@ import {
   cardType,
   GameFuncs,
   gamePlayerObject,
-  gameplayState,
   gameStateType,
   GetData,
   SetData,
@@ -16,6 +15,8 @@ import {
   userWhiteCardsType,
   Utils,
 } from '../../types'
+
+import { gameplayState } from '../gameplayStateEnum'
 
 type Database = firebase.database.Database
 
@@ -484,7 +485,7 @@ class _GameFuncs implements GameFuncs {
       this.getData.czar(gid),
     ]).then((values) => {
       const players = values[0]
-      const state = values[1]
+      const state: gameplayState = values[1]
       const czar = values[2]
       if (state !== gameplayState.PLAYERS_VOTING) {
         return

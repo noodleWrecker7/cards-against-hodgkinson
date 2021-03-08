@@ -40,12 +40,7 @@ export interface usersPlayedCards {
   [index: string]: cardType
 }
 
-export enum gameplayState {
-  NOT_STARTED,
-  PLAYERS_PICKING,
-  PLAYERS_VOTING,
-  TRANSITION,
-}
+import { gameplayState } from '../src/gameplayStateEnum'
 
 export interface gameStateType {
   name: string

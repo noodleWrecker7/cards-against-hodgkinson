@@ -1,12 +1,12 @@
 import {
   gameDisplayInfo,
   gamePlayerObject,
-  gameplayState,
   gameStateType,
   userObj,
   usersPlayedCards,
   userWhiteCardsType,
 } from './game'
+import { gameplayState } from '../src/gameplayStateEnum'
 
 export interface GetData {
   usersWhiteCards(uid: string, gid: string): Promise<userWhiteCardsType>

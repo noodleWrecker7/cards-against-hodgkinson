@@ -4,7 +4,7 @@ import { sockCB, userWhiteCardsType } from './game'
 export interface GameFuncs {
   startGame(uid: string, gid: string, socket: Socket): void
 
-  dealCards(gid: string): void
+  dealCards(gid: string): Promise<void>
 
   progressGame(gid: string): void
 
@@ -16,28 +16,51 @@ export interface GameFuncs {
 
   arriveAtGamePage(gid: string, uid: string, socket: Socket): void
 
-  joinPlayerToGame(uid: string, gid: string):void
+  joinPlayerToGame(uid: string, gid: string): void
 
-  attemptCreateGame(title: string, maxPlayers: number, uid: string, maxRounds: number, isPrivate: boolean,
-                    ownerName: string, socket: Socket):void
+  attemptCreateGame(
+    title: string,
+    maxPlayers: number,
+    uid: string,
+    maxRounds: number,
+    isPrivate: boolean,
+    ownerName: string,
+    socket: Socket
+  ): void
 
-  createGame(name: string, maxPlayer: number, owner: string, maxRounds: number, isPrivate: boolean, ownerName: string) :string
+  createGame(
+    name: string,
+    maxPlayer: number,
+    owner: string,
+    maxRounds: number,
+    isPrivate: boolean,
+    ownerName: string
+  ): string
 
-  returningsession(uid: string, socket: Socket):void
+  returningsession(uid: string, socket: Socket): void
 
-  applyforusername(data: string, socket: Socket):void
+  applyforusername(data: string, socket: Socket): void
 
-  clearInactiveUsers():void
+  clearInactiveUsers(): void
 
-  selectCards(uid: string, gid: string, cards: string[], callback: sockCB):void
+  selectCards(uid: string, gid: string, cards: string[], callback: sockCB): void
 
-  playCards(gid: string, uid: string, cards: string[], userCards: userWhiteCardsType):Promise<boolean>
+  playCards(
+    gid: string,
+    uid: string,
+    cards: string[],
+    userCards: userWhiteCardsType
+  ): Promise<boolean>
 
-  isAllCardsPlayed(gid: string):Promise<boolean>
+  isAllCardsPlayed(gid: string): Promise<boolean>
 
-  czarPicksCard(gid: string, czaruid: string, winneruid: string, socket: Socket):void
+  czarPicksCard(gid: string, czaruid: string, winneruid: string, socket: Socket): void
 
-  removeLosingCards(gid: string, winner: string):Promise<boolean>
+  removeLosingCards(gid: string, winner: string): Promise<boolean>
 
-  incrementPlayerScore(gid: string, uid: string):void
+  incrementPlayerScore(gid: string, uid: string): void
+
+  leaveGame(uid: string, gid: string, socket: Socket): void
+
+  stripPlayerList(gid: string): Promise<void>
 }

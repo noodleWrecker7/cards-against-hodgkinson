@@ -66,43 +66,47 @@ class _GameFuncs implements GameFuncs {
   }
 
   // todo might be worth updating white cards on a per player basis when they play their cards
-  dealCards(gid: string) {
-    console.log('dealing')
-    this.getData
-      .whiteCardsData(gid)
-      .then((whites: { [uid: string]: userWhiteCardsType }) => {
-        this.getData
-          .gamePlayers(gid)
-          .then((players: { [uid: string]: gamePlayerObject }) => {
-            const keys = Object.keys(players)
-            const updates: updateType = {}
-            for (let i = 0; i < keys.length; i++) {
-              // for each user
-              console.log('handling user')
-              let len
-              try {
-                len = Object.keys(whites[keys[i]].inventory).length
-              } catch (e) {
-                len = 0
-              }
-              const cardsToAdd = MAX_WHITE_CARDS - len // how many cards need adding
-              console.log({ cardsToAdd })
+  dealCards(gid: string): Promise<void> {
+    return new Promise((resolve, reject) => {
+      console.log('dealing')
+      this.getData
+        .whiteCardsData(gid)
+        .then((whites: { [uid: string]: userWhiteCardsType }) => {
+          this.getData
+            .gamePlayers(gid)
+            .then((players: { [uid: string]: gamePlayerObject }) => {
+              const keys = Object.keys(players)
+              const updates: updateType = {}
+              for (let i = 0; i < keys.length; i++) {
+                // for each user
+                console.log('handling user')
+                let len
+                try {
+                  len = Object.keys(whites[keys[i]].inventory).length
+                } catch (e) {
+                  len = 0
+                }
+                const cardsToAdd = MAX_WHITE_CARDS - len // how many cards need adding
+                console.log({ cardsToAdd })
 
-              for (let j = 0; j < cardsToAdd; j++) {
-                const ref = 'gameStates/' + gid + '/whiteCardsData/' + keys[i] + '/inventory/'
-                updates[ref + this.database.ref(ref).push().key] = this.utils.getWhiteCard()
+                for (let j = 0; j < cardsToAdd; j++) {
+                  const ref = 'gameStates/' + gid + '/whiteCardsData/' + keys[i] + '/inventory/'
+                  updates[ref + this.database.ref(ref).push().key] = this.utils.getWhiteCard()
+                }
+                updates['gameStates/' + gid + '/players/' + keys[i] + '/doing'] = 'Playing'
               }
-            }
-            updates['gameStates/' + gid + '/gameplayInfo/blackCard'] = this.utils.getBlackCard()
-            this.database.ref().update(updates) // does all updates at once
-          })
-          .catch((err: Error) => {
-            console.log(err)
-          })
-      })
-      .catch((reason: Error) => {
-        return reason
-      })
+              updates['gameStates/' + gid + '/gameplayInfo/blackCard'] = this.utils.getBlackCard()
+              this.database.ref().update(updates) // does all updates at once
+              resolve()
+            })
+            .catch((err: Error) => {
+              console.log(err)
+            })
+        })
+        .catch((reason: Error) => {
+          reject(reason)
+        })
+    })
   }
 
   progressGame(gid: string) {
@@ -128,11 +132,13 @@ class _GameFuncs implements GameFuncs {
             this.progressGame(gid)
           }, 5000)
           break
+
         case gameplayState.TRANSITION:
           updates['gameStates/' + gid + '/gameplayInfo/state'] = gameplayState.PLAYERS_PICKING
-          this.dealCards(gid)
-          this.nextCzar(gid).then((czar) => {
-            this.setData.gamePlayerDoing(gid, czar, 'Czar')
+          this.dealCards(gid).then(() => {
+            this.nextCzar(gid).then((czar) => {
+              this.setData.gamePlayerDoing(gid, czar, 'Czar')
+            })
           })
           this.getData.roundNum(gid).then((round) => {
             this.setData.roundNum(gid, round + 1)
@@ -411,6 +417,24 @@ class _GameFuncs implements GameFuncs {
       })
   }
 
+  stripPlayerList(gid: string): Promise<void> {
+    return new Promise<void>((resolve) => {
+      Promise.all([this.getData.whiteCardsData(gid), this.getData.gamePlayers(gid)]).then(
+        (values) => {
+          const whiteCards = Object.keys(values[0])
+          const players = Object.keys(values[1])
+          const updates: updateType = {}
+          for (let i = 0; i < whiteCards.length; i++) {
+            if (!players.includes(whiteCards[i])) {
+              updates['gameStates/' + gid + '/whiteCardsData/' + whiteCards[i]] = null
+            }
+          }
+          resolve()
+        }
+      )
+    })
+  }
+
   playCards(
     gid: string,
     uid: string,
@@ -419,29 +443,32 @@ class _GameFuncs implements GameFuncs {
   ): Promise<boolean> {
     const updates: updateType = {}
     return new Promise((resolve, reject) => {
-      const cardObjs: cardType[] = []
-      for (let i = 0; i < cards.length; i++) {
-        cardObjs.push(userCards.inventory[cards[i]])
-        updates['gameStates/' + gid + '/whiteCardsData/' + uid + '/inventory/' + cards[i]] = null
-      }
-      updates['gameStates/' + gid + '/whiteCardsData/' + uid + '/played'] = true
-      updates['gameStates/' + gid + '/playedCards/' + uid] = cardObjs
-      this.database
-        .ref()
-        .update(updates)
-        .then(() => {
-          resolve(true)
+      this.stripPlayerList(gid).then(() => {
+        const cardObjs: cardType[] = []
+        for (let i = 0; i < cards.length; i++) {
+          cardObjs.push(userCards.inventory[cards[i]])
+          updates['gameStates/' + gid + '/whiteCardsData/' + uid + '/inventory/' + cards[i]] = null
+        }
+        updates['gameStates/' + gid + '/whiteCardsData/' + uid + '/played'] = true
+        updates['gameStates/' + gid + '/playedCards/' + uid] = cardObjs
+        updates['gameStates/' + gid + '/players/' + uid + '/doing'] = 'Played'
+        this.database
+          .ref()
+          .update(updates)
+          .then(() => {
+            resolve(true)
 
-          this.isAllCardsPlayed(gid)
-            .then((result) => {
-              if (result) {
-                this.progressGame(gid) // should go to voting stage
-              }
-            })
-            .catch((err) => {
-              console.log(err.message)
-            })
-        })
+            this.isAllCardsPlayed(gid)
+              .then((result) => {
+                if (result) {
+                  this.progressGame(gid) // should go to voting stage
+                }
+              })
+              .catch((err) => {
+                console.log(err.message)
+              })
+          })
+      })
     })
   }
 
@@ -480,7 +507,7 @@ class _GameFuncs implements GameFuncs {
       return
     }
     Promise.all([
-      this.getData.gamePlayers(gid),
+      this.getData.whiteCardsData(gid),
       this.getData.gameplayState(gid),
       this.getData.czar(gid),
     ]).then((values) => {
@@ -522,8 +549,23 @@ class _GameFuncs implements GameFuncs {
   }
 
   incrementPlayerScore(gid: string, uid: string) {
-    this.getData.playerScore(gid, uid).then((score: number) => {
-      this.setData.playerScore(gid, uid, score + 1)
-    })
+    this.getData
+      .playerScore(gid, uid)
+      .then((score: number) => {
+        this.setData.playerScore(gid, uid, score + 1)
+      })
+      .catch((err) => {
+        console.log(err)
+        console.log('Player must have left game' + { gid, uid })
+      })
+  }
+
+  leaveGame(uid: string, gid: string, socket: Socket) {
+    const updates: updateType = {}
+    updates['gameStates/' + gid + '/players/' + uid] = null
+    updates['users/' + uid + '/state'] = '/lobby'
+
+    this.database.ref().update(updates)
+    this.emit.state(socket, uid)
   }
 }

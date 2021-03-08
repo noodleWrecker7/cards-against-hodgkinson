@@ -89,6 +89,12 @@ export default (io: Server, funcs: GameFuncs, utils: Utils, cb: any) => {
       })
     })
 
+    socket.on('leavegame', function (data: { gid: string; uid: string }) {
+      utils.handleCall(data.uid, socket).then(() => {
+        funcs.leaveGame(data.uid, data.gid, socket)
+      })
+    })
+
     //
     socket.on('requestwhitecards', function (data: { uid: string }, callback: sockCB) {
       // console.log('reqwhitecards')

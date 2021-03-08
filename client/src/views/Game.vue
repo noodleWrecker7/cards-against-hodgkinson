@@ -2,17 +2,18 @@
   <div id="game-page">
     <div id="control-bar">
       <button id="controlsbutton" v-if="$store.state.isOwner" @click="displaycontrols=!displaycontrols">
-        {{ this.displaycontrols ? 'Hide' : 'Show' }} Controls
+        {{ this.displaycontrols ? "Hide" : "Show" }} Controls
       </button>
+      <button id="leavegamebutton" @click="leaveGame">Leave game</button>
     </div>
     <div id="game-container">
       <div id="left-section">
         <div id="black-card-container">
-          <blackcard :carddata="gameData.blackCard"/>
+          <blackcard :carddata="gameData.blackCard" />
           <button :disabled="hasSubmittedCards" id="submitbutton" @click="submitCards">Submit answer</button>
         </div>
         <div id="player-list-container">
-          <p v-for="(player, id) in playerList" :key="id">{{ player.name }}</p>
+          <p v-for="(player, id) in playerList" :key="id">{{ player.name }}....{{player.points}}....{{player.doing}}</p>
         </div>
 
       </div>
@@ -23,14 +24,14 @@
             <whitecard @cardclicked="toggleTopCardSelected" :key="index" v-for="(card, index) in user"
                        :card-data="gameData.state !== 1 ?card:{text:''}"
                        :class="{selected: votedwinner === key}"
-                       :cardKey="key"/>
+                       :cardKey="key" />
           </div>
         </div>
 
         <div id="player-cards-container" v-if="gameData.round >0">
           <whitecard @cardclicked="toggleBottomCardSelected" :key="key" :cardKey="key"
                      v-for="(card, key) in playerWhiteCards"
-                     :cardData="card" :class="{selected: selectedCards.includes(key)}"/>
+                     :cardData="card" :class="{selected: selectedCards.includes(key)}" />
         </div>
       </div>
     </div>
@@ -59,6 +60,13 @@ export default {
     'gameID'
   ],
   methods: {
+    leaveGame () {
+      if (this.gameID !== '') {
+        return
+      }
+      this.$socket.emit('leavegame', { gid: this.gameID, uid: this.$store.state.UID })
+      this.$router.push('/lobby')
+    },
     playBottomCards () {
       if (this.selectedCards.length > this.gameData.blackCard.rule) {
         return

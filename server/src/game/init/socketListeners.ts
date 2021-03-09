@@ -96,9 +96,9 @@ export default (io: Server, funcs: GameFuncs, utils: Utils, cb: any) => {
     })
 
     //
-    socket.on('requestwhitecards', function (data: { uid: string }, callback: sockCB) {
+    socket.on('requestwhitecards', function (data: { uid: string; gid:string }, callback: sockCB) {
       // console.log('reqwhitecards')
-      cb.requestwhitecards(data.uid, data.uid, callback, socket)
+      cb.requestwhitecards(data.uid, data.gid, callback, socket)
     })
 
     socket.on('requestlobbies', function (data: { uid: string }, callback: sockCB) {

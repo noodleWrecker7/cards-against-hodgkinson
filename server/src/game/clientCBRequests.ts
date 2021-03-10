@@ -41,4 +41,15 @@ class ClientCBRequests {
         })
     })
   }
+  /*
+  requesttopcards(gid: string, callback: sockCB) {
+    this.getData
+      .playedCards(gid)
+      .then((data) => {
+        callback({ error: null, data: data })
+      })
+      .catch((err: Error) => {
+        callback({ error: err.message })
+      })
+  }*/
 }

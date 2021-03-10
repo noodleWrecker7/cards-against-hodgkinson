@@ -1,6 +1,6 @@
 // Server-side logic, generally doing things to the game and users
 
-import {Socket} from 'socket.io'
+import { Socket } from 'socket.io'
 import firebase from 'firebase'
 import {
   cardType,
@@ -16,7 +16,7 @@ import {
   Utils,
 } from '../../types'
 
-import {gameplayState} from '../gameplayStateEnum'
+import { gameplayState } from '../gameplayStateEnum'
 
 type Database = firebase.database.Database
 
@@ -87,7 +87,7 @@ class _GameFuncs implements GameFuncs {
                   len = 0
                 }
                 const cardsToAdd = MAX_WHITE_CARDS - len // how many cards need adding
-                console.log({cardsToAdd})
+                console.log({ cardsToAdd })
 
                 for (let j = 0; j < cardsToAdd; j++) {
                   const ref = 'gameStates/' + gid + '/whiteCardsData/' + keys[i] + '/inventory/'
@@ -304,7 +304,7 @@ class _GameFuncs implements GameFuncs {
         },
       },
       gameplayInfo: {
-        blackCard: {text: '', pack: '', rule: 0},
+        blackCard: { text: '', pack: '', rule: 0 },
         round: 0,
         maxRounds: maxRounds,
         creatorUID: owner,
@@ -325,7 +325,7 @@ class _GameFuncs implements GameFuncs {
         socket.emit('returningsessioninvalid')
       } else {
         const val = snap.val()
-        socket.emit('returningsessionaccepted', {name: val.name, state: val.state})
+        socket.emit('returningsessionaccepted', { name: val.name, state: val.state })
         if (val.state.includes('GID')) {
           const gid = val.state.substr(val.state.indexOf('GID'), 13)
           socket.join(gid)
@@ -352,7 +352,7 @@ class _GameFuncs implements GameFuncs {
       .ref('users/' + uid)
       .set(playerObj)
       .then(() => {
-        socket.emit('usernameaccepted', {uid: uid, name: data, state: '/lobby', secret: secret})
+        socket.emit('usernameaccepted', { uid: uid, name: data, state: '/lobby', secret: secret })
       })
   }
 
@@ -372,7 +372,7 @@ class _GameFuncs implements GameFuncs {
   selectCards(uid: string, gid: string, cards: string[], callback: sockCB) {
     console.log(cards)
     if (!cards) {
-      callback({error: 'none sent'})
+      callback({ error: 'none sent' })
       return
     }
 
@@ -384,27 +384,27 @@ class _GameFuncs implements GameFuncs {
           return
         }
         if (cards.length > gameInfo.blackCard.rule) {
-          callback({error: 'too many'})
+          callback({ error: 'too many' })
           return
         }
         if (userCards.played) {
-          callback({error: 'already played'})
+          callback({ error: 'already played' })
           return
         }
         if (gameInfo.czar === uid) {
-          callback({error: 'is czar'})
+          callback({ error: 'is czar' })
           return
         }
         const keys = Object.keys(userCards.inventory)
         const valid = cards.every((v) => keys.includes(v)) // checks keys provided are actually part of inventory
         if (!valid) {
-          callback({error: 'not exist'})
+          callback({ error: 'not exist' })
           return
         }
 
         this.playCards(gid, uid, cards, userCards).then((res) => {
           if (res) {
-            callback({data: true})
+            callback({ data: true })
           }
         })
 
@@ -412,7 +412,7 @@ class _GameFuncs implements GameFuncs {
       })
       .catch((err) => {
         console.log(err)
-        callback({error: 'unknown'})
+        callback({ error: 'unknown' })
       })
   }
 
@@ -455,7 +455,7 @@ class _GameFuncs implements GameFuncs {
           .ref()
           .update(updates)
           .then(() => {
-            console.log('Successfully played card' + {gid, uid})
+            console.log('Successfully played card' + { gid, uid })
             resolve(true)
 
             this.isAllCardsPlayed(gid)
@@ -485,7 +485,7 @@ class _GameFuncs implements GameFuncs {
             resolve(false)
           } else if (numOfPlayedCards === numOfPlayers - 1) {
             // if everyone played
-            console.log('All cards played' + {gid})
+            console.log('All cards played' + { gid })
             resolve(true)
           } else if (numOfPlayedCards < numOfPlayers) {
             resolve(false)
@@ -538,12 +538,12 @@ class _GameFuncs implements GameFuncs {
       this.getData
         .usersPlayedCards(gid, winner)
         .then((data) => {
-          this.setData.playedCards(gid, {[winner]: data}).then(() => {
+          this.setData.playedCards(gid, { [winner]: data }).then(() => {
             resolve(true)
           })
         })
         .catch((err: Error) => {
-          console.warn('Failed to remove losing cards at ' + {gid})
+          console.warn('Failed to remove losing cards at ' + { gid })
           reject(err)
         })
     })
@@ -557,17 +557,22 @@ class _GameFuncs implements GameFuncs {
       })
       .catch((err) => {
         console.log(err)
-        console.log('Player must have left game' + {gid, uid})
+        console.log('Player must have left game' + { gid, uid })
       })
   }
 
   leaveGame(uid: string, gid: string, socket: Socket) {
+    console.log('Leave game')
     const updates: updateType = {}
     updates['gameStates/' + gid + '/players/' + uid] = null
     updates['users/' + uid + '/state'] = '/lobby'
 
-    this.database.ref().update(updates).then(() => {
-      this.emit.state(socket, uid)
-    })
+    this.database
+      .ref()
+      .update(updates)
+      .then(() => {
+        console.log('updated')
+        this.emit.state(socket, uid)
+      })
   }
 }

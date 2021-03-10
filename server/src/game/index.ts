@@ -1,4 +1,4 @@
-import {Server} from 'socket.io'
+import { Server } from 'socket.io'
 import firebase from 'firebase'
 import _setData from './utility/setData'
 import _utils from './utility/utils'
@@ -7,7 +7,7 @@ import clientCBRequests from './clientCBRequests'
 import firebaseListeners from './init/firebaseListeners'
 import gameFuncs from './gameFuncs'
 import socketListeners from './init/socketListeners'
-import {GetData, SetData, Utils} from '../../types'
+import { GetData, SetData, Utils } from '../../types'
 import _getData from './utility/getData'
 
 type Database = firebase.database.Database
@@ -22,7 +22,7 @@ export default (io: Server, database: Database): void => {
   firebaseListeners(io, database)
   const funcs = gameFuncs(database, utils, getData, setData, emitters)
 
-  socketListeners(io, funcs, utils, cb)
+  socketListeners(io, funcs, utils, cb, emitters)
 
   setInterval(() => {
     funcs.clearInactiveUsers(funcs.logout)

@@ -1,5 +1,5 @@
 <template>
-  <div id="app" :class="$store.state.isDarkMode?'dark-mode':'light-mode'">
+  <div id="app" :class="isDark?'dark-mode':'light-mode'">
     <div id="nav">
       <button @click="logout()" id="logout-button">Log Out</button>
       <button class="themetogglebutton" @click="toggleTheme">
@@ -24,7 +24,7 @@ export default {
   name: 'app',
   methods: {
     toggleTheme () {
-      this.$store.state.commit('setDarkMode', !this.$store.state.isDarkMode)
+      this.$store.commit('setDarkMode', !this.$store.state.isDarkMode)
     },
     logout () {
       this.$store.dispatch('logOut')
@@ -35,6 +35,9 @@ export default {
   computed: {
     modeimage () {
       return this.isDarkMode ? 'moon.svg' : 'sun.svg'
+    },
+    isDark () {
+      return this.$store.state.isDarkMode
     }
   },
   data () {

@@ -62,10 +62,11 @@ export default {
   ],
   methods: {
     leaveGame () {
-      if (this.gameID !== '') {
+      if (!this.gameID) {
         return
       }
       this.$socket.client.emit('leavegame', { gid: this.gameID, uid: this.$store.state.UID })
+      this.$store.dispatch('leaveGame')
       this.$router.push('/lobby')
     },
     playBottomCards () {
@@ -114,6 +115,7 @@ export default {
       }
       if (this.gameData.czar === this.$store.state.UID) {
         // win card
+        this.voteTopCards()
       }
     },
     toggleTopCardSelected (key) {

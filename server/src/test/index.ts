@@ -33,7 +33,7 @@ describe('Server side testing', function () {
     getData: GetData,
     setData: SetData,
     utils: Utils,
-    emitters,
+    emitters: any,
     funcs: GameFuncs,
     cb: any,
     data
@@ -165,7 +165,7 @@ describe('Server side testing', function () {
     })
 
     before('Should load socket listeners', (done) => {
-      game012345(ioServer, funcs, utils, cb)
+      game012345(ioServer, funcs, utils, cb, emitters)
       done()
     })
     // eslint-disable-next-line no-unused-vars

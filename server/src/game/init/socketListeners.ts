@@ -2,7 +2,7 @@
 import { Server } from 'socket.io'
 import { GameFuncs, Utils, sockCB } from '../../../types'
 
-export default (io: Server, funcs: GameFuncs, utils: Utils, cb: any) => {
+export default (io: Server, funcs: GameFuncs, utils: Utils, cb: any, emit: any) => {
   io.on('connection', function (socket) {
     // handle sockets
     socket.emit('welcometoserver', process.env.GAE_VERSION ? process.env.GAE_VERSION : 'Beta')
@@ -74,6 +74,7 @@ export default (io: Server, funcs: GameFuncs, utils: Utils, cb: any) => {
           .handleCall(data.uid, socket)
           .then(() => {
             funcs.selectCards(data.uid, data.gid, data.cards, callback)
+            emit.gameplayInfo(socket, data.gid)
           })
           .catch((err) => {
             if (err.message === 'rate limit') {
@@ -96,7 +97,7 @@ export default (io: Server, funcs: GameFuncs, utils: Utils, cb: any) => {
     })
 
     //
-    socket.on('requestwhitecards', function (data: { uid: string; gid:string }, callback: sockCB) {
+    socket.on('requestwhitecards', function (data: { uid: string; gid: string }, callback: sockCB) {
       // console.log('reqwhitecards')
       cb.requestwhitecards(data.uid, data.gid, callback, socket)
     })
@@ -105,5 +106,11 @@ export default (io: Server, funcs: GameFuncs, utils: Utils, cb: any) => {
       // console.log('reqlobbies')
       cb.requestlobbies(data.uid, callback, socket)
     })
+
+    /*socket.on('requesttopcards', function (data: { uid: string; gid: string }, callback: sockCB) {
+      utils.handleCall(data.uid, socket).then(() => {
+        cb.requesttopcards(data.uid, callback)
+      })
+    })*/
   })
 }

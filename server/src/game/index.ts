@@ -25,6 +25,6 @@ export default (io: Server, database: Database): void => {
   socketListeners(io, funcs, utils, cb)
 
   setInterval(() => {
-    funcs.clearInactiveUsers()
+    funcs.clearInactiveUsers(funcs.logout)
   }, 1800000)
 }

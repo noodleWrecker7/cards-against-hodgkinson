@@ -1,9 +1,10 @@
 <template>
-  <div id="app" :class="isDarkMode?'dark-mode':'light-mode'">
+  <div id="app" :class="$store.state.isDarkMode?'dark-mode':'light-mode'">
     <div id="nav">
       <button @click="logout()" id="logout-button">Log Out</button>
-      <button class="themetogglebutton" @click="isDarkMode = !isDarkMode">
-        <img class="themetoggleimage" v-if="isDarkMode" src="@/assets/moon.svg" alt="light/dark theme toggle"/>
+      <button class="themetogglebutton" @click="toggleTheme">
+        <img class="themetoggleimage" v-if="$store.state.isDarkMode" src="@/assets/moon.svg"
+             alt="light/dark theme toggle"/>
         <img class="themetoggleimage" v-else src="@/assets/sun.svg" alt="light/dark theme toggle"/>
       </button>
       <p id="version-tag">{{ this.$store.state.versionName }}</p>
@@ -22,6 +23,9 @@
 export default {
   name: 'app',
   methods: {
+    toggleTheme () {
+      this.$store.state.commit('setDarkMode', !this.$store.state.isDarkMode)
+    },
     logout () {
       this.$store.dispatch('logOut')
       this.$router.push('/')
@@ -46,7 +50,10 @@ export default {
       console.log('accepted session')
       // set username
       // set logged in
-      this.$store.dispatch('logIn', { name: data.name, uid: this.$store.state.UID })
+      this.$store.dispatch('logIn', {
+        name: data.name,
+        uid: this.$store.state.UID
+      })
       // go to state
       if (this.$route.fullPath === data.state) {
         console.log('route same')
@@ -56,7 +63,10 @@ export default {
       console.log('changing path')
       const state = data.state
       const route = this.$route.fullPath
-      console.log({ state, route })
+      console.log({
+        state,
+        route
+      })
       this.$router.push(data.state)
     },
     returningsessioninvalid () {

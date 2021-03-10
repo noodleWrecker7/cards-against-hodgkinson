@@ -65,7 +65,7 @@ export default {
       if (this.gameID !== '') {
         return
       }
-      this.$socket.emit('leavegame', { gid: this.gameID, uid: this.$store.state.UID })
+      this.$socket.client.emit('leavegame', { gid: this.gameID, uid: this.$store.state.UID })
       this.$router.push('/lobby')
     },
     playBottomCards () {

@@ -41,7 +41,7 @@ export interface GameFuncs {
 
   applyforusername(data: string, socket: Socket): void
 
-  clearInactiveUsers(): void
+  clearInactiveUsers(_logout: (uid:string, socket?:Socket)=>void): void
 
   selectCards(uid: string, gid: string, cards: string[], callback: sockCB): void
 

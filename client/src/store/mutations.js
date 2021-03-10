@@ -46,5 +46,8 @@ export default {
   },
   setIsCzar (state, data) {
     state.isCzar = data
+  },
+  setDarkMode (state, data) {
+    state.isDarkMode = data
   }
 }

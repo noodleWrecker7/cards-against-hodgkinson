@@ -236,12 +236,6 @@ describe('Server side testing', function () {
                 text: 'Friendly fire.',
               },
             ],
-            UID2: [
-              {
-                pack: 'Main Deck',
-                text: 'Friendly fire.',
-              },
-            ],
           })
           .then(() => {
             funcs.isAllCardsPlayed('isAllCardsPlayedTest').then((res) => {

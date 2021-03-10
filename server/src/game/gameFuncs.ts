@@ -114,7 +114,7 @@ class _GameFuncs implements GameFuncs {
       const updates: updateType = {}
       switch (state) {
         case gameplayState.NOT_STARTED:
-          updates['gameStates/' + gid + '/gameplayInfo/state'] = gameplayState.PLAYERS_VOTING
+          updates['gameStates/' + gid + '/gameplayInfo/state'] = gameplayState.PLAYERS_PICKING
           updates['gameStates/' + gid + '/gameplayInfo/round'] = 1
           this.dealCards(gid)
           this.nextCzar(gid).then((czar) => {
@@ -456,6 +456,7 @@ class _GameFuncs implements GameFuncs {
           .ref()
           .update(updates)
           .then(() => {
+            console.log('Successfully played card' + { gid, uid })
             resolve(true)
 
             this.isAllCardsPlayed(gid)
@@ -483,8 +484,9 @@ class _GameFuncs implements GameFuncs {
           const numOfPlayers = Object.keys(whiteCards).length
           if (!playedCards) {
             resolve(false)
-          } else if (numOfPlayedCards === numOfPlayers) {
+          } else if (numOfPlayedCards === numOfPlayers - 1) {
             // if everyone played
+            console.log('All cards played' + { gid })
             resolve(true)
           } else if (numOfPlayedCards < numOfPlayers) {
             resolve(false)

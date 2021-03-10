@@ -13,7 +13,8 @@
           <button :disabled="hasSubmittedCards" id="submitbutton" @click="submitCards">Submit answer</button>
         </div>
         <div id="player-list-container">
-          <p v-for="(player, id) in playerList" :key="id">{{ player.name }}....{{player.points}}....{{player.doing}}</p>
+          <p v-for="(player, id) in playerList" :key="id">{{ player.name
+            }}....{{ player.points }}....{{ player.doing }}</p>
         </div>
 
       </div>
@@ -126,6 +127,10 @@ export default {
     toggleBottomCardSelected (key) {
       if (this.gameData.state !== 1) {
         alert('Now is not the time to play your card\n;(')
+        return
+      }
+      if (this.isCzar) {
+        alert('You are the card Czar this round, you do not get to play ;(')
         return
       }
       console.log(key)

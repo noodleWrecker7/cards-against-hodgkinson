@@ -1,0 +1,111 @@
+{
+  "users": {
+    "UID1234567890": {
+      "UID": "UID1234567890",
+      "name": "testman",
+      "secret": "testtoken",
+      "state": "lobby",
+      "lastSeen": "0"
+    },
+    "UID1234567892": {
+      "UID": "UID1234567890",
+      "name": "testman",
+      "secret": "eeee",
+      "state": "lobby",
+      "lastSeen": "0"
+    }
+  },
+  "gameDisplayInfo": {
+    "GID1234567890": {
+      "name": "Game Room",
+      "ownerID": "UID1234567890",
+      "playerCount": 4,
+      "maxPlayers": 9
+    }
+  },
+  "gameStates": {
+    "removeCardsTest": {
+      "playedCards": {
+        "a": [{
+          "pack": "Main Deck",
+          "text": "card a"
+        }],
+        "b": [{
+          "pack": "Main Deck",
+          "text": "card b"
+        }],
+        "c": [{
+          "pack": "Main Deck",
+          "text": "card c"
+        }]
+      }
+    },
+    "isAllCardsPlayedTest": {
+      "whiteCardsData": {
+        "UID1": {
+          "inventory": {
+            "-MUuaEAo-ts4Lm9mznh6": {
+              "pack": "Main Deck",
+              "text": "Friendly fire."
+            }
+          },
+          "played": []
+        },
+        "UID2": {
+          "inventory": {
+            "-MUuaEAo-ts4Lm9mznh6": {
+              "pack": "Main Deck",
+              "text": "Friendly fire."
+            }
+          },
+          "played": []
+        }
+      }
+    },
+    "czarTest": {
+      "gameplayInfo": {
+        "czar": "a"
+      },
+      "players": {
+        "a": {
+          "name": "Adam",
+          "points": 0,
+          "hasPlayed": false
+        },
+        "b": {
+          "name": "Bob",
+          "points": 0,
+          "hasPlayed": false
+        }
+      }
+    },
+    "GID1234567890": {
+      "spectators": [
+      ],
+      "whiteCardsData": {
+        "UIDxxx": {
+          "inventory": [],
+          "played": []
+        }
+      },
+      "gameplayInfo": {
+        "blackCard": {
+          "text": ""
+        },
+        "round": 0,
+        "maxRounds": 12,
+        "creatorUID": "UIDxxx",
+        "playedCards": 0,
+        "state": "not started",
+        "czar": ""
+      },
+      "players": {
+        "UIDxxx": {
+          "name": "Adam",
+          "points": 0,
+          "hasPlayed": false
+        }
+      }
+    }
+  }
+}

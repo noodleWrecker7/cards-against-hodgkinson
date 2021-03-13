@@ -126,6 +126,7 @@ class _GameFuncs implements GameFuncs {
           break
         case gameplayState.PLAYERS_PICKING:
           updates['gameStates/' + gid + '/gameplayInfo/state'] = gameplayState.PLAYERS_VOTING
+          updates['gameStates/' + gid + '/playedCards'] = {}
           break
         case gameplayState.PLAYERS_VOTING:
           updates['gameStates/' + gid + '/gameplayInfo/state'] = gameplayState.TRANSITION

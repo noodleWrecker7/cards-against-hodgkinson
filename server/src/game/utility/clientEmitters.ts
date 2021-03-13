@@ -3,6 +3,8 @@
 import { Socket } from 'socket.io'
 import { gameStateType, GetData } from '../../../types'
 import firebase from 'firebase'
+import { logger } from '@noodlewrecker7/logger'
+import Logger = logger.Logger
 
 type Database = firebase.database.Database
 
@@ -26,7 +28,7 @@ class Emitters {
         socket.emit('setstate', data)
       })
       .catch((err: Error) => {
-        console.log(err)
+        Logger.error(err.message)
       })
   }
 
@@ -37,7 +39,7 @@ class Emitters {
         socket.emit('sendgameinfo', data)
       })
       .catch((err: Error) => {
-        console.log(err)
+        Logger.error(err.message)
       })
   }
 
@@ -48,7 +50,7 @@ class Emitters {
         socket.emit('topcards', data)
       })
       .catch((err: Error) => {
-        console.log(err)
+        Logger.error(err.message)
       })
   }
 }

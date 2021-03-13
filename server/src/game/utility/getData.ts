@@ -1,6 +1,8 @@
 // Short hands for getting data
 import firebase from 'firebase'
 import { userWhiteCardsType, GetData, gameDisplayInfo } from '../../../types'
+import { logger } from '@noodlewrecker7/logger'
+import Logger = logger.Logger
 
 type Database = firebase.database.Database
 export default (database: Database): GetData => {
@@ -88,12 +90,11 @@ class _GetData implements GetData {
             resolve(snap.val())
           } else {
             const err = new Error('Could not get data: ' + ref)
-            console.log(err.stack)
+            Logger.debug(err.stack)
+            Logger.trace('Could not get data: ' + ref)
             reject(err)
           }
         })
     })
   }
 }
-
-export class _getData {}

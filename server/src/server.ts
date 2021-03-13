@@ -1,4 +1,11 @@
+import 'source-map-support/register'
 import { start } from '@google-cloud/debug-agent'
+
+import { logger } from '@noodlewrecker7/logger'
+import Logger = logger.Logger
+// global.Logger = Logger
+
+Logger.setLevel(Logger.Levels.TRACE)
 
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore
@@ -11,18 +18,20 @@ import firebase from 'firebase/app'
 
 import game from './game'
 
-console.log('Server Starting')
-console.time('Started server in')
+Logger.info('Server Starting')
+Logger.time('Started server in')
 
 // Setting origin header
 let originHeader: string
 if (process.env.buildmode !== 'production') {
-  console.log('Currently running on beta branch')
+  Logger.info('Currently running on beta branch')
   originHeader = '*'
+  Logger.setLevel(Logger.Levels.TRACE)
 } else {
-  console.log('Current Build: #' + process.env.GAE_VERSION)
+  Logger.info('Current Build: #' + process.env.GAE_VERSION)
   start({ serviceContext: { enableCanary: false } })
   originHeader = 'https://cards.adamhodgkinson.dev'
+  Logger.setLevel(Logger.Levels.WARN)
 }
 
 // Loading cards
@@ -54,7 +63,7 @@ function warmup() {
     return
   }
 
-  console.time('Warmed up in ')
+  Logger.time('Warmed up in ')
   require('firebase/auth')
   require('firebase/database')
 
@@ -65,8 +74,7 @@ function warmup() {
   const database = firebase.database()
   game(ioSrv, database)
   warmedup = true
-  console.log('hello')
-  console.timeEnd('Warmed up in ')
+  Logger.timeEnd('Warmed up in ')
 }
 
 app.get('/_ah/start', (req: Request, res: Response) => {
@@ -78,10 +86,10 @@ app.get('/_ah/start', (req: Request, res: Response) => {
 })
 
 http.listen(PORT, () => {
-  console.log('Listening on: ' + PORT)
+  Logger.info('Listening on: ' + PORT)
 
   // game.clearInactiveUsers()
-  console.timeEnd('Started server in')
+  Logger.timeEnd('Started server in')
   if (process.argv.includes('test')) {
     process.exit(0)
   }
@@ -91,7 +99,8 @@ http.listen(PORT, () => {
 })
 
 app.get('/*', function (request: Request, response: Response) {
-  console.log(request.path)
+  const reqPath = request.path
+  Logger.debug({ reqPath })
   response.send(
     '<html lang="uk"><script>window.location.href="https://cards.adamhodgkinson.dev?apiuri=" + window.location.hostname</script></html>'
   )

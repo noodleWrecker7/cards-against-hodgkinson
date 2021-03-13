@@ -9,6 +9,8 @@ import whiteCards from '../../../data/white.json'
 import { RateLimiterMemory } from 'rate-limiter-flexible'
 import { Socket } from 'socket.io'
 import { cardType, Utils } from '../../../types'
+import { logger } from '@noodlewrecker7/logger'
+import Logger = logger.Logger
 
 type Database = firebase.database.Database
 
@@ -28,13 +30,13 @@ class _Utils implements Utils {
 
   constructor(database: Database) {
     this.database = database
-    console.time('Loaded black cards in')
+    Logger.time('Loaded black cards in')
     this.blackCardsLength = blackCards.length
-    console.timeEnd('Loaded black cards in')
+    Logger.timeEnd('Loaded black cards in')
 
-    console.time('Loaded white cards in')
+    Logger.time('Loaded white cards in')
     this.whiteCardsLength = whiteCards.length
-    console.timeEnd('Loaded white cards in')
+    Logger.timeEnd('Loaded white cards in')
   }
 
   getBlackCard(): cardType {
@@ -84,9 +86,9 @@ class _Utils implements Utils {
             })
         })
         .catch((err: Error) => {
-          console.log(err)
-          console.log(err.stack)
-          console.trace()
+          Logger.error(err.message)
+          Logger.debug(err.stack)
+          Logger.trace('Err in handle call')
           reject(new Error('rate limit'))
         })
     })
@@ -108,7 +110,7 @@ class _Utils implements Utils {
           }
         })
         .catch((reason) => {
-          console.log(reason)
+          Logger.error(reason.message)
           reject(new Error('usernotfound'))
         })
     })

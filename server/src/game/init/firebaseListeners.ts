@@ -1,14 +1,15 @@
 // Database update listeners
 import firebase from 'firebase'
 import { Server } from 'socket.io'
-type Database = firebase.database.Database;
-export default (io:Server, database:Database) => {
+import { logger } from '@noodlewrecker7/logger'
+import Logger = logger.Logger
+type Database = firebase.database.Database
+export default (io: Server, database: Database) => {
   database.ref('gameStates').on('child_added', (snap) => {
-    const id:string = <string> snap.key
+    const id: string = <string>snap.key
     database.ref('gameStates/' + id + '/gameplayInfo').on('value', (snap) => {
-      console.log('game info update')
-      console.log({ id })
-      io.to(id).emit('sendgameinfo', snap.val())
+      Logger.debug('game info update ' + JSON.stringify({ id }))
+      io.in(id).emit('sendgameinfo', snap.val())
     })
 
     database.ref('gameStates/' + id + '/players').on('value', (snap) => {
@@ -27,7 +28,7 @@ export default (io:Server, database:Database) => {
     })
 
     database.ref('gameStates/' + id + '/whiteCardsData').on('value', () => {
-      console.log('white card update')
+      Logger.debug('white card update')
       io.to(id).emit('comegetwhitecards', { gid: id })
     })
   })

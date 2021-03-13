@@ -73,8 +73,7 @@ export default (io: Server, funcs: GameFuncs, utils: Utils, cb: any, emit: any) 
         utils
           .handleCall(data.uid, socket)
           .then(() => {
-            funcs.selectCards(data.uid, data.gid, data.cards, callback)
-            emit.gameplayInfo(socket, data.gid)
+            funcs.selectCards(data.uid, data.gid, data.cards, callback, socket)
           })
           .catch((err) => {
             if (err.message === 'rate limit') {

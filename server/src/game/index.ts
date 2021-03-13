@@ -9,6 +9,11 @@ import gameFuncs from './gameFuncs'
 import socketListeners from './init/socketListeners'
 import { GetData, SetData, Utils } from '../../types'
 import _getData from './utility/getData'
+// const Logger = global.Logger
+import { logger } from '@noodlewrecker7/logger'
+import Logger = logger.Logger
+
+Logger.info('hi')
 
 type Database = firebase.database.Database
 

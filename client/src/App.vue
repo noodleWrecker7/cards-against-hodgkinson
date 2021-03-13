@@ -1,5 +1,5 @@
 <template>
-  <div id="app" :class="isDark?'dark-mode':'light-mode'">
+  <div id="app" :class="isDarkMode?'dark-mode':'light-mode'">
     <div id="nav">
       <button @click="logout()" id="logout-button">Log Out</button>
       <button class="themetogglebutton" @click="toggleTheme">
@@ -20,6 +20,7 @@
 </template>
 
 <script>
+import { mapState } from 'vuex'
 export default {
   name: 'app',
   methods: {
@@ -33,11 +34,11 @@ export default {
     }
   },
   computed: {
+    ...mapState([
+      'isDarkMode'
+    ]),
     modeimage () {
       return this.isDarkMode ? 'moon.svg' : 'sun.svg'
-    },
-    isDark () {
-      return this.$store.state.isDarkMode
     }
   },
   data () {
@@ -108,6 +109,8 @@ export default {
 
 #version-tag {
   position: fixed;
+  top: 0;
+  left: 5px
 }
 
 .navSection {

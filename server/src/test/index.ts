@@ -28,6 +28,11 @@ import { io, Socket } from 'socket.io-client'
 
 import game012345 from '../game/init/socketListeners'
 
+import { logger } from '@noodlewrecker7/logger'
+import Logger = logger.Logger
+
+Logger.info('HIIIII')
+
 describe('Server side testing', function () {
   let database: Database,
     getData: GetData,
@@ -84,7 +89,7 @@ describe('Server side testing', function () {
 
     it('Should return a valid black card', () => {
       const card = utils.getBlackCard()
-      console.log(card)
+      Logger.info(card)
       expect(card).to.have.property('text').to.be.a('string')
       expect(card).to.have.property('pack').to.be.a('string')
       expect(card).to.have.property('rule').to.be.a('number')

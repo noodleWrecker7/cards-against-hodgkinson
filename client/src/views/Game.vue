@@ -77,7 +77,7 @@ export default {
         uid: this.$store.state.UID,
         gid: this.$store.state.GID,
         cards: this.selectedCards
-      }, function (data) {
+      }, (data) => {
         if (data.data) {
           this.retries = 0
           this.selectedCards = []

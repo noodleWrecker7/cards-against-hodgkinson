@@ -1,6 +1,6 @@
 // Server-side logic, generally doing things to the game and users
 
-import { Socket } from 'socket.io'
+import {Socket} from 'socket.io'
 import firebase from 'firebase'
 import {
   cardType,
@@ -16,8 +16,8 @@ import {
   Utils,
 } from '../../types'
 
-import { gameplayState } from '../gameplayStateEnum'
-import { logger } from '@noodlewrecker7/logger'
+import {gameplayState} from '../gameplayStateEnum'
+import {logger} from '@noodlewrecker7/logger'
 import Logger = logger.Logger
 
 type Database = firebase.database.Database
@@ -70,7 +70,7 @@ class _GameFuncs implements GameFuncs {
   // todo might be worth updating white cards on a per player basis when they play their cards
   dealCards(gid: string): Promise<void> {
     return new Promise((resolve, reject) => {
-      Logger.debug('dealing ' + JSON.stringify({ gid }))
+      Logger.debug('dealing ' + JSON.stringify({gid}))
       this.getData
         .whiteCardsData(gid)
         .then((whites: { [uid: string]: userWhiteCardsType }) => {
@@ -82,7 +82,8 @@ class _GameFuncs implements GameFuncs {
               for (let i = 0; i < keys.length; i++) {
                 // for each user
                 const uid = keys[i]
-                Logger.debug('handling user ' + JSON.stringify({ uid, gid }))
+                Logger.debug('handling user ' + JSON.stringify({uid, gid}))
+                updates['gameStates/' + gid + '/whiteCardsData/' + keys[i] + '/played'] = false
                 let len
                 try {
                   len = Object.keys(whites[uid].inventory).length
@@ -90,7 +91,7 @@ class _GameFuncs implements GameFuncs {
                   len = 0
                 }
                 const cardsToAdd = MAX_WHITE_CARDS - len // how many cards need adding
-                Logger.debug(JSON.stringify({ cardsToAdd }))
+                Logger.debug(JSON.stringify({cardsToAdd}))
 
                 for (let j = 0; j < cardsToAdd; j++) {
                   const ref = 'gameStates/' + gid + '/whiteCardsData/' + keys[i] + '/inventory/'
@@ -126,7 +127,7 @@ class _GameFuncs implements GameFuncs {
           break
         case gameplayState.PLAYERS_PICKING:
           updates['gameStates/' + gid + '/gameplayInfo/state'] = gameplayState.PLAYERS_VOTING
-          updates['gameStates/' + gid + '/playedCards'] = {}
+          // updates['gameStates/' + gid + '/playedCards'] = {}
           break
         case gameplayState.PLAYERS_VOTING:
           updates['gameStates/' + gid + '/gameplayInfo/state'] = gameplayState.TRANSITION
@@ -139,6 +140,7 @@ class _GameFuncs implements GameFuncs {
 
         case gameplayState.TRANSITION:
           updates['gameStates/' + gid + '/gameplayInfo/state'] = gameplayState.PLAYERS_PICKING
+          updates['gameStates/' + gid + '/playedCards'] = {}
           this.dealCards(gid).then(() => {
             this.nextCzar(gid).then((czar) => {
               this.setData.gamePlayerDoing(gid, czar, 'Czar')
@@ -188,7 +190,7 @@ class _GameFuncs implements GameFuncs {
   logout(uid: string, socket?: Socket) {
     this.getData.userState(uid).then((state: string) => {
       if (state.includes('GID')) {
-        Logger.debug('logged out user still has a game ' + JSON.stringify({ uid }))
+        Logger.debug('logged out user still has a game ' + JSON.stringify({uid}))
         const gid = state.substring(state.indexOf('GID'), 13)
         this.removePlayerFromGame(uid, gid, socket, '/')
       }
@@ -245,7 +247,7 @@ class _GameFuncs implements GameFuncs {
 
   joinPlayerToGame(uid: string, gid: string) {
     return new Promise((resolve, reject) => {
-      Logger.debug('join player to game ' + JSON.stringify({ uid, gid }))
+      Logger.debug('join player to game ' + JSON.stringify({uid, gid}))
       const updates: updateType = {}
 
       this.getData.username(uid).then((username: string) => {
@@ -276,7 +278,7 @@ class _GameFuncs implements GameFuncs {
     ownerName: string,
     socket: Socket
   ) {
-    Logger.debug('requested to make game ' + JSON.stringify({ uid }))
+    Logger.debug('requested to make game ' + JSON.stringify({uid}))
     const id = this.createGame(title, maxPlayers, uid, maxRounds, isPrivate, ownerName)
     socket.emit('gamecreatedsuccess', id)
   }
@@ -307,7 +309,7 @@ class _GameFuncs implements GameFuncs {
         },
       },
       gameplayInfo: {
-        blackCard: { text: '', pack: '', rule: 0 },
+        blackCard: {text: '', pack: '', rule: 0},
         round: 0,
         maxRounds: maxRounds,
         creatorUID: owner,
@@ -328,7 +330,7 @@ class _GameFuncs implements GameFuncs {
         socket.emit('returningsessioninvalid')
       } else {
         const val = snap.val()
-        socket.emit('returningsessionaccepted', { name: val.name, state: val.state })
+        socket.emit('returningsessionaccepted', {name: val.name, state: val.state})
         if (val.state.includes('GID')) {
           const gid = val.state.substr(val.state.indexOf('GID'), 13)
           socket.join(gid)
@@ -355,7 +357,7 @@ class _GameFuncs implements GameFuncs {
       .ref('users/' + uid)
       .set(playerObj)
       .then(() => {
-        socket.emit('usernameaccepted', { uid: uid, name: data, state: '/lobby', secret: secret })
+        socket.emit('usernameaccepted', {uid: uid, name: data, state: '/lobby', secret: secret})
       })
   }
 
@@ -373,9 +375,10 @@ class _GameFuncs implements GameFuncs {
   }
 
   selectCards(uid: string, gid: string, cards: string[], callback: sockCB, socket: Socket) {
-    Logger.debug(JSON.stringify({ cards }))
+    Logger.debug(JSON.stringify({cards}))
     if (!cards) {
-      callback({ error: 'none sent' })
+      Logger.warn("Rejected cards for: none sent")
+      callback({error: 'none sent'})
       return
     }
 
@@ -384,30 +387,35 @@ class _GameFuncs implements GameFuncs {
         const gameInfo = values[0]
         const userCards = values[1]
         if (!gameInfo.blackCard.rule) {
+          Logger.warn("Rejected cards for: no black card rule")
           return
         }
         if (cards.length > gameInfo.blackCard.rule) {
-          callback({ error: 'too many' })
+          Logger.warn("Rejected cards for: too many")
+          callback({error: 'too many'})
           return
         }
         if (userCards.played) {
-          callback({ error: 'already played' })
+          Logger.warn("Rejected cards for: already played")
+          callback({error: 'already played'})
           return
         }
         if (gameInfo.czar === uid) {
-          callback({ error: 'is czar' })
+          Logger.warn("Rejected cards for: is czar")
+          callback({error: 'is czar'})
           return
         }
         const keys = Object.keys(userCards.inventory)
         const valid = cards.every((v) => keys.includes(v)) // checks keys provided are actually part of inventory
         if (!valid) {
-          callback({ error: 'not exist' })
+          callback({error: 'not exist'})
+          Logger.warn("Rejected cards for: cards invalid")
           return
         }
 
         this.playCards(gid, uid, cards, userCards).then((res) => {
           if (res) {
-            callback({ data: true })
+            callback({data: true})
             this.emit.gameplayInfo(socket, gid)
           }
         })
@@ -416,7 +424,7 @@ class _GameFuncs implements GameFuncs {
       })
       .catch((err) => {
         Logger.error(err.message)
-        callback({ error: 'unknown' })
+        callback({error: 'unknown'})
       })
   }
 
@@ -444,6 +452,7 @@ class _GameFuncs implements GameFuncs {
     cards: string[],
     userCards: userWhiteCardsType
   ): Promise<boolean> {
+    Logger.debug("Playing cards " + gid)
     const updates: updateType = {}
     return new Promise((resolve, reject) => {
       this.stripPlayerList(gid).then(() => {
@@ -459,7 +468,7 @@ class _GameFuncs implements GameFuncs {
           .ref()
           .update(updates)
           .then(() => {
-            Logger.debug('Successfully played card ' + JSON.stringify({ gid, uid }))
+            Logger.debug('Successfully played card ' + JSON.stringify({gid, uid}))
             resolve(true)
 
             this.isAllCardsPlayed(gid)
@@ -489,7 +498,7 @@ class _GameFuncs implements GameFuncs {
             resolve(false)
           } else if (numOfPlayedCards === numOfPlayers - 1) {
             // if everyone played
-            Logger.debug('All cards played' + JSON.stringify({ gid }))
+            Logger.debug('All cards played' + JSON.stringify({gid}))
             resolve(true)
           } else if (numOfPlayedCards < numOfPlayers) {
             resolve(false)
@@ -542,12 +551,12 @@ class _GameFuncs implements GameFuncs {
       this.getData
         .usersPlayedCards(gid, winner)
         .then((data) => {
-          this.setData.playedCards(gid, { [winner]: data }).then(() => {
+          this.setData.playedCards(gid, {[winner]: data}).then(() => {
             resolve(true)
           })
         })
         .catch((err: Error) => {
-          Logger.error('Failed to remove losing cards at ' + JSON.stringify({ gid }))
+          Logger.error('Failed to remove losing cards at ' + JSON.stringify({gid}))
           reject(err)
         })
     })
@@ -561,7 +570,7 @@ class _GameFuncs implements GameFuncs {
       })
       .catch((err) => {
         Logger.error(err.message)
-        Logger.debug('Player must have left game' + JSON.stringify({ gid, uid }))
+        Logger.debug('Player must have left game' + JSON.stringify({gid, uid}))
       })
   }
 
@@ -575,7 +584,7 @@ class _GameFuncs implements GameFuncs {
       .ref()
       .update(updates)
       .then(() => {
-        Logger.debug('updated after leaving game ' + JSON.stringify({ gid, uid }))
+        Logger.debug('updated after leaving game ' + JSON.stringify({gid, uid}))
         this.emit.state(socket, uid)
       })
   }

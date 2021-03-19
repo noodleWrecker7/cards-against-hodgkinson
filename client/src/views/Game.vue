@@ -82,6 +82,7 @@ export default {
           this.retries = 0
           this.selectedCards = []
           this.$store.commit('setHasSubmittedCards', true)
+          this.votedwinner = ''
         } else if (data.error) {
           if (data.error === 'rate limit') {
             if (this.retries < 3) {

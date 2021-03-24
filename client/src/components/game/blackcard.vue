@@ -1,5 +1,5 @@
 <template>
-<div class="card-itself"><p class="black-card-text">{{carddata.text}}</p> <p class="pack-name">{{carddata.pack}}</p></div>
+<div class="card-itself"><p class="black-card-text">{{carddata.text}}</p> <p class="pack-name" style="color: white;">{{carddata.pack}}</p></div>
 </template>
 
 <script>

@@ -21,10 +21,10 @@
       <div id="right-section">
         <div id="top-white-cards-container">
           <!--          <whitecard :key="x" v-for="x in 18"/>-->
-          <div :key="key" :userID="key" v-for="(user,key) in topCards">
+          <div :key="key" :userID="key" v-for="(user,key) in topCards" class="top-card-container">
             <whitecard @cardclicked="toggleTopCardSelected" :key="index" v-for="(card, index) in user"
                        :card-data="gameData.state !== 1 ?card:{text:''}"
-                       :class="{selected: votedwinner === key}"
+                       :class="{selected: votedwinner === key, won: gameData.state===3}"
                        :cardKey="key" />
           </div>
         </div>
@@ -199,6 +199,14 @@ export default {
 </script>
 
 <style scoped>
+.top-card-container{
+ display: flex;
+  flex-flow: row nowrap;
+  border: 0.2em solid;
+  border-radius: 15px;
+  height: min-content;
+  margin-left: 1em;
+}
 #submitbutton {
   background-color: #42ff42;
   color: black;
@@ -215,7 +223,6 @@ export default {
 }
 
 #player-list-container {
-  color: white;
 }
 
 #create-game-form {

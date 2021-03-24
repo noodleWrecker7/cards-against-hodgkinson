@@ -26,11 +26,14 @@ export default {
 </script>
 
 <style scoped>
+
 .selected{
   border-color: #00e5ff !important;
   box-shadow: 5px 5px 5px 2px #0e0e0e;
   background-color: #acacac !important;
-
+}
+.won {
+  background: #42b983 !important;
 }
 .card-text {
   position: absolute;
@@ -61,9 +64,7 @@ export default {
   height: 10em;
   box-sizing: border-box;
   display: block;
-  margin-left: 1em;
-  margin-right: 0.9em;
-  margin-top: 1em;
+  margin: .1em;
   flex-shrink: 2;
 }
 </style>

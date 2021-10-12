@@ -1,21 +1,25 @@
 <template>
-  <div id="app" :class="isDarkMode?'dark-mode':'light-mode'">
+  <div id="app" :class="isDarkMode ? 'dark-mode' : 'light-mode'">
     <div id="nav">
       <button @click="logout()" id="logout-button">Log Out</button>
       <button class="themetogglebutton" @click="toggleTheme">
-        <img class="themetoggleimage" v-if="$store.state.isDarkMode" src="@/assets/moon.svg"
-             alt="light/dark theme toggle"/>
-        <img class="themetoggleimage" v-else src="@/assets/sun.svg" alt="light/dark theme toggle"/>
+        <img
+          class="themetoggleimage"
+          v-if="$store.state.isDarkMode"
+          src="@/assets/moon.svg"
+          alt="light/dark theme toggle"
+        />
+        <img class="themetoggleimage" v-else src="@/assets/sun.svg" alt="light/dark theme toggle" />
       </button>
       <p id="version-tag">{{ this.$store.state.versionName }}</p>
       <div class="navSection" v-if="$store.state.loggedIn">
-        <div class="usernamecontainer">You are logged in as:
+        <div class="usernamecontainer">
+          You are logged in as:
           <p class="username">{{ this.$store.state.userName }}</p>
         </div>
       </div>
-
     </div>
-    <router-view class="router-view"/>
+    <router-view class="router-view" />
   </div>
 </template>
 
@@ -24,38 +28,35 @@ import { mapState } from 'vuex'
 export default {
   name: 'app',
   methods: {
-    toggleTheme () {
+    toggleTheme() {
       this.$store.commit('setDarkMode', !this.$store.state.isDarkMode)
     },
-    logout () {
+    logout() {
       this.$store.dispatch('logOut')
       this.$router.push('/')
       this.$socket.client.emit('logout', { uid: this.$store.state.UID })
-    }
+    },
   },
   computed: {
-    ...mapState([
-      'isDarkMode'
-    ]),
-    modeimage () {
+    ...mapState(['isDarkMode']),
+    modeimage() {
       return this.isDarkMode ? 'moon.svg' : 'sun.svg'
-    }
+    },
   },
-  data () {
-    return {
-    }
+  data() {
+    return {}
   },
   sockets: {
-    secretnotmatch () {
+    secretnotmatch() {
       console.error('Secret rejected by server')
     },
-    returningsessionaccepted (data) {
+    returningsessionaccepted(data) {
       console.log('accepted session')
       // set username
       // set logged in
       this.$store.dispatch('logIn', {
         name: data.name,
-        uid: this.$store.state.UID
+        uid: this.$store.state.UID,
       })
       // go to state
       if (this.$route.fullPath === data.state) {
@@ -68,11 +69,11 @@ export default {
       const route = this.$route.fullPath
       console.log({
         state,
-        route
+        route,
       })
       this.$router.push(data.state)
     },
-    returningsessioninvalid () {
+    returningsessioninvalid() {
       this.$store.dispatch('logOut')
       if (this.$route.fullPath !== '/') {
         this.$router.push('/')
@@ -80,8 +81,8 @@ export default {
       // clear uid
       // clear name
       // go to home
-    }
-  }
+    },
+  },
 }
 </script>
 
@@ -92,7 +93,7 @@ export default {
 }
 
 .themetoggleimage {
-  width: 2em
+  width: 2em;
 }
 
 .router-view {
@@ -103,13 +104,13 @@ export default {
   /*margin-left: auto;*/
   position: fixed;
   right: 0;
-  margin-right: 5px
+  margin-right: 5px;
 }
 
 #version-tag {
   position: fixed;
   top: 0;
-  left: 5px
+  left: 5px;
 }
 
 .navSection {

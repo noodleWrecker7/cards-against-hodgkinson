@@ -26,18 +26,24 @@
   "gameStates": {
     "removeCardsTest": {
       "playedCards": {
-        "a": [{
-          "pack": "Main Deck",
-          "text": "card a"
-        }],
-        "b": [{
-          "pack": "Main Deck",
-          "text": "card b"
-        }],
-        "c": [{
-          "pack": "Main Deck",
-          "text": "card c"
-        }]
+        "a": [
+          {
+            "pack": "Main Deck",
+            "text": "card a"
+          }
+        ],
+        "b": [
+          {
+            "pack": "Main Deck",
+            "text": "card b"
+          }
+        ],
+        "c": [
+          {
+            "pack": "Main Deck",
+            "text": "card c"
+          }
+        ]
       }
     },
     "isAllCardsPlayedTest": {
@@ -80,8 +86,7 @@
       }
     },
     "GID1234567890": {
-      "spectators": [
-      ],
+      "spectators": [],
       "whiteCardsData": {
         "UIDxxx": {
           "inventory": [],

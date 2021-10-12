@@ -13,25 +13,25 @@ Vue.config.devtools = true
 var api
 if (process.env.buildmode !== 'production') {
   api = 'https://api.beta.cards.adamhodgkinson.dev'
-} else { api = 'api.cards.adamhodgkinson.dev' }
+} else {
+  api = 'api.cards.adamhodgkinson.dev'
+}
 const customURI = new URLSearchParams(location.search).get('apiuri')
 if (customURI) {
   api = customURI
 }
 const socket = io(api, {
   auth: {
-    token: ''
-  }
+    token: '',
+  },
 })
 Vue.use(VueSocketIOExt, socket, { store })
 
 const v = new Vue({
   router,
   store,
-  render: h => h(App),
-  methods: {
-
-  }
+  render: (h) => h(App),
+  methods: {},
 }).$mount('#app')
 
 console.log('hi')

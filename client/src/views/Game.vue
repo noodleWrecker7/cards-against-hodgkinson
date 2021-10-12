@@ -1,8 +1,12 @@
 <template>
   <div id="game-page">
     <div id="control-bar">
-      <button id="controlsbutton" v-if="$store.state.isOwner" @click="displaycontrols=!displaycontrols">
-        {{ this.displaycontrols ? "Hide" : "Show" }} Controls
+      <button
+        id="controlsbutton"
+        v-if="$store.state.isOwner"
+        @click="displaycontrols = !displaycontrols"
+      >
+        {{ this.displaycontrols ? 'Hide' : 'Show' }} Controls
       </button>
       <button id="leavegamebutton" @click="leaveGame">Leave game</button>
     </div>
@@ -10,29 +14,40 @@
       <div id="left-section">
         <div id="black-card-container">
           <blackcard :carddata="gameData.blackCard" />
-          <button :disabled="hasSubmittedCards" id="submitbutton" @click="submitCards">Submit answer</button>
+          <button :disabled="hasSubmittedCards" id="submitbutton" @click="submitCards">
+            Submit answer
+          </button>
         </div>
         <div id="player-list-container">
-          <p v-for="(player, id) in playerList" :key="id">{{ player.name
-            }}....{{ player.points }}....{{ player.doing }}</p>
+          <p v-for="(player, id) in playerList" :key="id">
+            {{ player.name }}....{{ player.points }}....{{ player.doing }}
+          </p>
         </div>
-
       </div>
       <div id="right-section">
         <div id="top-white-cards-container">
           <!--          <whitecard :key="x" v-for="x in 18"/>-->
-          <div :key="key" :userID="key" v-for="(user,key) in topCards" class="top-card-container">
-            <whitecard @cardclicked="toggleTopCardSelected" :key="index" v-for="(card, index) in user"
-                       :card-data="gameData.state !== 1 ?card:{text:''}"
-                       :class="{selected: votedwinner === key, won: gameData.state===3}"
-                       :cardKey="key" />
+          <div :key="key" :userID="key" v-for="(user, key) in topCards" class="top-card-container">
+            <whitecard
+              @cardclicked="toggleTopCardSelected"
+              :key="index"
+              v-for="(card, index) in user"
+              :card-data="gameData.state !== 1 ? card : { text: '' }"
+              :class="{ selected: votedwinner === key, won: gameData.state === 3 }"
+              :cardKey="key"
+            />
           </div>
         </div>
 
-        <div id="player-cards-container" v-if="gameData.round >0">
-          <whitecard @cardclicked="toggleBottomCardSelected" :key="key" :cardKey="key"
-                     v-for="(card, key) in playerWhiteCards"
-                     :cardData="card" :class="{selected: selectedCards.includes(key)}" />
+        <div id="player-cards-container" v-if="gameData.round > 0">
+          <whitecard
+            @cardclicked="toggleBottomCardSelected"
+            :key="key"
+            :cardKey="key"
+            v-for="(card, key) in playerWhiteCards"
+            :cardData="card"
+            :class="{ selected: selectedCards.includes(key) }"
+          />
         </div>
       </div>
     </div>
@@ -55,13 +70,11 @@ export default {
   name: 'Game',
   components: {
     Whitecard,
-    Blackcard
+    Blackcard,
   },
-  props: [
-    'gameID'
-  ],
+  props: ['gameID'],
   methods: {
-    leaveGame () {
+    leaveGame() {
       if (!this.gameID) {
         return
       }
@@ -69,31 +82,35 @@ export default {
       this.$store.dispatch('leaveGame')
       this.$router.push('/lobby')
     },
-    playBottomCards () {
+    playBottomCards() {
       if (this.selectedCards.length > this.gameData.blackCard.rule) {
         return
       }
-      this.$socket.client.emit('selectcards', {
-        uid: this.$store.state.UID,
-        gid: this.$store.state.GID,
-        cards: this.selectedCards
-      }, (data) => {
-        if (data.data) {
-          this.retries = 0
-          this.selectedCards = []
-          this.$store.commit('setHasSubmittedCards', true)
-          this.votedwinner = ''
-        } else if (data.error) {
-          if (data.error === 'rate limit') {
-            if (this.retries < 3) {
-              this.retries++
-              setTimeout(this.submitCards, 2000)
+      this.$socket.client.emit(
+        'selectcards',
+        {
+          uid: this.$store.state.UID,
+          gid: this.$store.state.GID,
+          cards: this.selectedCards,
+        },
+        (data) => {
+          if (data.data) {
+            this.retries = 0
+            this.selectedCards = []
+            this.$store.commit('setHasSubmittedCards', true)
+            this.votedwinner = ''
+          } else if (data.error) {
+            if (data.error === 'rate limit') {
+              if (this.retries < 3) {
+                this.retries++
+                setTimeout(this.submitCards, 2000)
+              }
             }
           }
         }
-      })
+      )
     },
-    voteTopCards () {
+    voteTopCards() {
       if (this.votedwinner === '') {
         alert('You need to pick a winner')
         return
@@ -106,10 +123,10 @@ export default {
       this.$socket.client.emit('czarpickcard', {
         uid: this.$store.state.UID,
         gid: this.$store.state.GID,
-        winner: this.votedwinner
+        winner: this.votedwinner,
       })
     },
-    submitCards () {
+    submitCards() {
       if (this.gameData.state === 1) {
         this.playBottomCards()
         return
@@ -119,7 +136,7 @@ export default {
         this.voteTopCards()
       }
     },
-    toggleTopCardSelected (key) {
+    toggleTopCardSelected(key) {
       console.log(key)
       if (this.votedwinner === key) {
         this.votedwinner = ''
@@ -127,7 +144,7 @@ export default {
         this.votedwinner = key
       }
     },
-    toggleBottomCardSelected (key) {
+    toggleBottomCardSelected(key) {
       if (this.gameData.state !== 1) {
         alert('Now is not the time to play your card\n;(')
         return
@@ -143,17 +160,21 @@ export default {
       }
 
       if (this.selectedCards.length === this.gameData.blackCard.rule) {
-        alert('Thats too many cards!\nYou can only play ' + this.gameData.blackCard.rule + ' card(s) this round')
+        alert(
+          'Thats too many cards!\nYou can only play ' +
+            this.gameData.blackCard.rule +
+            ' card(s) this round'
+        )
         return
       }
       this.selectedCards.push(key)
     },
-    startGame () {
+    startGame() {
       this.$socket.client.emit('startgame', {
         uid: this.$store.state.UID,
-        gid: this.$store.state.GID
+        gid: this.$store.state.GID,
       })
-    }
+    },
   },
   computed: {
     ...mapState([
@@ -162,28 +183,27 @@ export default {
       'playerWhiteCards',
       'hasSubmittedCards',
       'topCards',
-      'isCzar'
-    ]
-    )
+      'isCzar',
+    ]),
   },
-  data () {
+  data() {
     return {
       displaycontrols: false,
       selectedCards: [],
       retries: 0,
-      votedwinner: '' // todo this
+      votedwinner: '', // todo this
     }
   },
   sockets: {
-    gamenotfound () {
+    gamenotfound() {
       console.log('game no find')
       // this.$router.replace('//lobby')
     },
-    topcards (data) {
+    topcards(data) {
       this.$store.dispatch('setTopCards', data)
-    }
+    },
   },
-  mounted () {
+  mounted() {
     if (!this.$store.state.loggedIn) {
       this.$router.push('/')
     }
@@ -192,15 +212,15 @@ export default {
     this.$store.dispatch('setGID', this.gameID)
     this.$socket.client.emit('arriveatgamepage', {
       uid: this.$store.state.UID,
-      gid: this.gameID
+      gid: this.gameID,
     })
-  }
+  },
 }
 </script>
 
 <style scoped>
-.top-card-container{
- display: flex;
+.top-card-container {
+  display: flex;
   flex-flow: row nowrap;
   border: 0.2em solid;
   border-radius: 15px;
@@ -283,7 +303,7 @@ export default {
 
 #black-card-container {
   width: min-content;
-  border: 1px solid black
+  border: 1px solid black;
 }
 
 #control-bar {
@@ -296,12 +316,12 @@ export default {
   box-shadow: 5px 5px 10px 1px black;
 }
 
-.slide-enter-active, .slide-leave-active {
+.slide-enter-active,
+.slide-leave-active {
   transition: all 0.3s;
 }
 
-.slide-enter, .slide-leave-to /* .list-leave-active below version 2.1.8 */
-{
+.slide-enter, .slide-leave-to /* .list-leave-active below version 2.1.8 */ {
   opacity: 0;
   transform: translateY(70vh);
   box-shadow: none;

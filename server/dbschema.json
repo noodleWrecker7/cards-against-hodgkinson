@@ -20,9 +20,7 @@
   },
   "gameStates": {
     "GID1234567890": {
-      "spectators": [
-
-      ],
+      "spectators": [],
       "whiteCardsData": {
         "UIDxxx": {
           "inventory": [],

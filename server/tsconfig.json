@@ -14,17 +14,8 @@
     "types": ["mocha", "node"],
     "lib": ["ES2020", "DOM"],
     "resolveJsonModule": true,
-    "typeRoots": [
-      "types"
-    ]
+    "typeRoots": ["types"]
   },
-  "include": [
-    "src/**/*",
-    "types/**/*"
-  ],
-  "exclude": [
-    "../node_modules"
-
-  ]
+  "include": ["src/**/*", "types/**/*"],
+  "exclude": ["../node_modules"]
 }
-

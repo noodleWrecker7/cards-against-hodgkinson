@@ -1,31 +1,49 @@
 <template>
   <div id="lobby">
     <div id="controls-tab">
-      <button id="refresh-button" @click="refreshLobbies"><img src="@/assets/refresh.svg"/>Refresh list</button>
+      <button id="refresh-button" @click="refreshLobbies">
+        <img src="@/assets/refresh.svg" />Refresh list
+      </button>
       <button @click="toggleModal">Create game</button>
     </div>
     <div id="lobby-cards-container">
-      <lobby-card v-for="(lobby, gid) in lobbyList" :game="lobby" :key="gid" :gid="gid"/>
+      <lobby-card v-for="(lobby, gid) in lobbyList" :game="lobby" :key="gid" :gid="gid" />
     </div>
     <transition name="slide">
       <div id="create-game-form" v-if="displaymodal">
         <h3>Create Game</h3>
 
-        <label class="label">Title:
-          <input v-model="newGame.title" placeholder="Title">
+        <label class="label"
+          >Title:
+          <input v-model="newGame.title" placeholder="Title" />
         </label>
-        <br>
-        <label>Max Players:<br>
-          <div id="max-players-container"><input type="range" max="24" min="3" v-model="newGame.maxPlayers"><input
-            min="3" max="24" type="number" v-model="newGame.maxPlayers"></div>
+        <br />
+        <label
+          >Max Players:<br />
+          <div id="max-players-container">
+            <input type="range" max="24" min="3" v-model="newGame.maxPlayers" /><input
+              min="3"
+              max="24"
+              type="number"
+              v-model="newGame.maxPlayers"
+            />
+          </div>
         </label>
-        <br>
-        <label>Max Rounds:<br>
-          <div id="max-rounds-container"><input type="range" max="24" min="2" v-model="newGame.maxRounds"><input
-            min="2" max="24" type="number" v-model="newGame.maxRounds"></div>
+        <br />
+        <label
+          >Max Rounds:<br />
+          <div id="max-rounds-container">
+            <input type="range" max="24" min="2" v-model="newGame.maxRounds" /><input
+              min="2"
+              max="24"
+              type="number"
+              v-model="newGame.maxRounds"
+            />
+          </div>
         </label>
-        <label>Private:<br>
-          <input type="checkbox" v-model="newGame.isPrivate">
+        <label
+          >Private:<br />
+          <input type="checkbox" v-model="newGame.isPrivate" />
         </label>
         <button class="submit" @click="createTheGame">Submit</button>
       </div>
@@ -42,22 +60,22 @@ export default {
   components: { LobbyCard },
   computed: {
     ...mapState({
-      lobbyList: state => state.lobbyList
-    })
+      lobbyList: (state) => state.lobbyList,
+    }),
   },
-  data () {
+  data() {
     return {
       displaymodal: true,
-      newGame: { title: '', maxPlayers: 9, maxRounds: 10, isPrivate: true }
+      newGame: { title: '', maxPlayers: 9, maxRounds: 10, isPrivate: true },
     }
   },
   sockets: {
-    gamecreatedsuccess (data) {
+    gamecreatedsuccess(data) {
       this.$router.push('/game/' + data)
-    }
+    },
   },
   methods: {
-    createTheGame () {
+    createTheGame() {
       console.log(this.newGame)
       this.$socket.client.emit('creategame', {
         title: this.newGame.title,
@@ -65,13 +83,13 @@ export default {
         maxRounds: this.newGame.maxRounds,
         isPrivate: this.newGame.isPrivate,
         uid: this.$store.state.UID,
-        ownerName: this.$store.state.userName
+        ownerName: this.$store.state.userName,
       })
     },
-    toggleModal () {
+    toggleModal() {
       this.displaymodal = !this.displaymodal
     },
-    refreshLobbies () {
+    refreshLobbies() {
       this.$socket.client.emit('requestlobbies', { uid: this.$store.state.UID }, (response) => {
         console.log('lobbies recieve')
         if (!response.error) {
@@ -80,15 +98,15 @@ export default {
           alert('You are doing that too fast\nPlease slow down')
         }
       })
-    }
+    },
   },
-  mounted () {
+  mounted() {
     if (!this.$store.state.loggedIn) {
       console.log('at lobby not logged in')
       this.$router.push('/')
     }
     this.refreshLobbies()
-  }
+  },
 }
 </script>
 <style scoped>
@@ -120,12 +138,12 @@ input {
   box-shadow: 5px 5px 10px 1px black;
 }
 
-.slide-enter-active, .slide-leave-active {
+.slide-enter-active,
+.slide-leave-active {
   transition: all 1s;
 }
 
-.slide-enter, .slide-leave-to /* .list-leave-active below version 2.1.8 */
-{
+.slide-enter, .slide-leave-to /* .list-leave-active below version 2.1.8 */ {
   opacity: 0;
   transform: translateX(-70vw);
   box-shadow: none;
@@ -135,7 +153,6 @@ input {
   display: flex;
   flex-flow: row wrap;
   justify-content: center;
-
 }
 
 #max-players-container > input {
@@ -161,7 +178,7 @@ input {
 
 img {
   height: 1em;
-  margin-right: .5em;
+  margin-right: 0.5em;
 }
 
 #refresh-button {
@@ -173,12 +190,10 @@ img {
   flex-flow: row wrap;
   justify-content: space-between;
   background-color: dodgerblue;
-
 }
 
 #lobby-cards-container {
   display: flex;
   flex-flow: row wrap;
 }
-
 </style>

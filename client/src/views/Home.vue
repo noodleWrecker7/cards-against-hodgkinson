@@ -1,9 +1,8 @@
 <template>
   <div class="home">
     <h1>Cards Against Hodgkinson</h1>
-    <input v-model="username" placeholder="Username..."/><br>
+    <input v-model="username" placeholder="Username..." /><br />
     <button @click="submitName" id="submitname">Enter</button>
-
   </div>
 </template>
 
@@ -13,41 +12,39 @@
 export default {
   name: 'Home',
   sockets: {
-    usernameunavailable () { // never actually sent anymore
+    usernameunavailable() {
+      // never actually sent anymore
       alert('That username is unavailable :(\nTry a new name?')
     },
-    usernameaccepted (data) {
+    usernameaccepted(data) {
       this.$store.dispatch('logIn', data)
       this.$store.commit('setSecret', data.secret)
       this.$router.push(data.state)
       window.location.reload()
-    }
+    },
   },
-  components: {
-  },
-  data () {
+  components: {},
+  data() {
     return {
-      username: ''
+      username: '',
     }
   },
   methods: {
-    submitName () {
+    submitName() {
       console.log(this.username)
       this.$socket.client.emit('applyforusername', this.username)
-    }
+    },
   },
-  mounted () {
-  }
+  mounted() {},
 }
 </script>
 
 <style scoped>
-
-#submitname{
+#submitname {
   background-color: dodgerblue;
   border-radius: 5px;
-  padding: .4em;
-  border: 1px dodgerblue ;
+  padding: 0.4em;
+  border: 1px dodgerblue;
   margin-top: 1em;
   font-size: medium;
 }

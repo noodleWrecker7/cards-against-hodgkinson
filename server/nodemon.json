@@ -1,12 +1,5 @@
 {
-  "ignore": [
-    ".git",
-    "node_modules/**/node_modules",
-    "node_modules",
-    "out",
-    "out/**/*",
-    "**/out"
-  ],
+  "ignore": [".git", "node_modules/**/node_modules", "node_modules", "out", "out/**/*", "**/out"],
   "ext": "js,ts",
   "verbose": true,
   "events": {

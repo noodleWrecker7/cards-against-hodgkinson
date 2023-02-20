@@ -5,7 +5,7 @@ automatic_scaling:
   min_pending_latency: 1000ms
   max_pending_latency: automatic
 env_variables:
-  buildmode: "production"
+  buildmode: 'production'
 network:
   session_affinity: true
 inbound_services:

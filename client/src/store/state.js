@@ -5,9 +5,7 @@ export default {
   GID: '',
   secret: '',
   loggedIn: true,
-  lobbyList: {
-
-  },
+  lobbyList: {},
   gameData: {},
   playerList: {},
   isOwner: true,
@@ -15,5 +13,5 @@ export default {
   playerWhiteCards: [],
   retries: 0,
   topCards: {},
-  hasSubmittedCards: false
+  hasSubmittedCards: false,
 }

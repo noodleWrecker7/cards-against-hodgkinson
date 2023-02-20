@@ -1,13 +1,14 @@
 <template>
-<div class="card-itself"><p class="black-card-text">{{carddata.text}}</p> <p class="pack-name" style="color: white;">{{carddata.pack}}</p></div>
+  <div class="card-itself">
+    <p class="black-card-text">{{ carddata.text }}</p>
+    <p class="pack-name" style="color: white">{{ carddata.pack }}</p>
+  </div>
 </template>
 
 <script>
 export default {
   name: 'blackcard',
-  props: [
-    'carddata'
-  ]
+  props: ['carddata'],
 }
 </script>
 
@@ -20,7 +21,7 @@ export default {
   border-radius: 20px;
   background-color: #0e0e0e;
   width: 12em;
-  height:18em;
+  height: 18em;
   margin: 1em;
 }
 </style>

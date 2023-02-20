@@ -1,53 +1,53 @@
 export default {
-  setVersionName (state, v) {
+  setVersionName(state, v) {
     state.versionName = v
   },
-  setLoggedIn (state, data) {
+  setLoggedIn(state, data) {
     state.loggedIn = data
   },
 
-  setUsername (state, data) {
+  setUsername(state, data) {
     state.userName = data
   },
-  setUID (state, data) {
+  setUID(state, data) {
     state.UID = data
   },
 
-  setLobbiesList (state, data) {
+  setLobbiesList(state, data) {
     state.lobbyList = data
   },
-  setGID (state, data) {
+  setGID(state, data) {
     state.GID = data
   },
-  setGameData (state, data) {
+  setGameData(state, data) {
     state.gameData = data
   },
-  setPlayerList (state, data) {
+  setPlayerList(state, data) {
     console.log('commit playerlist')
     state.playerList = data
   },
-  setSecret (state, data) {
+  setSecret(state, data) {
     state.secret = data
   },
-  setState (state, data) {
+  setState(state, data) {
     state.state = data
   },
-  setPlayerWhiteCards (state, data) {
+  setPlayerWhiteCards(state, data) {
     state.playerWhiteCards = data
   },
-  setTopCards (state, data) {
+  setTopCards(state, data) {
     state.topCards = data
   },
-  clearState (state) {
+  clearState(state) {
     state = {}
   },
-  setHasSubmittedCards (state, data) {
+  setHasSubmittedCards(state, data) {
     state.hasSubmittedCards = data
   },
-  setIsCzar (state, data) {
+  setIsCzar(state, data) {
     state.isCzar = data
   },
-  setDarkMode (state, data) {
+  setDarkMode(state, data) {
     state.isDarkMode = data
-  }
+  },
 }

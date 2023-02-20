@@ -1,30 +1,27 @@
 <template>
-<div class="card">
-  {{game.name}}
-  <br>
-  {{game.playerCount}} / {{game.maxPlayers}}
-  <div></div>
-  <button @click="join">Join</button>
-</div>
+  <div class="card">
+    {{ game.name }}
+    <br />
+    {{ game.playerCount }} / {{ game.maxPlayers }}
+    <div></div>
+    <button @click="join">Join</button>
+  </div>
 </template>
 
 <script>
 export default {
   name: 'lobbyCard',
-  props: [
-    'game',
-    'gid'
-  ],
+  props: ['game', 'gid'],
   methods: {
-    join () {
+    join() {
       // dispatch action join game etc
       console.log(this.gid)
       this.$router.push('/game/' + this.gid)
-    }
+    },
   },
-  mounted () {
+  mounted() {
     console.log(this.gid)
-  }
+  },
 }
 </script>
 

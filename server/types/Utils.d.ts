@@ -2,13 +2,13 @@ import { Socket } from 'socket.io'
 import { cardType } from './index'
 
 interface Utils {
-  getBlackCard(): cardType;
+  getBlackCard(): cardType
 
-  getWhiteCard(): cardType;
+  getWhiteCard(): cardType
 
-  generateID(): string;
+  generateID(): string
 
-  escapeHtml(arg0: string): string;
+  escapeHtml(arg0: string): string
 
-  handleCall(uid: string, socket: Socket): Promise<boolean>;
+  handleCall(uid: string, socket: Socket): Promise<boolean>
 }

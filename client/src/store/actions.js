@@ -1,43 +1,43 @@
 export default {
-  socket_welcometoserver (context, data) {
+  socket_welcometoserver(context, data) {
     console.log('welcome message recieved')
     console.log(data)
     context.commit('setVersionName', data)
     if (context.state.UID) {
       this._vm.$socket.client.emit('returningsession', {
-        uid: context.state.UID
+        uid: context.state.UID,
       })
     }
   },
-  logOut (context) {
+  logOut(context) {
     context.commit('setLoggedIn', false)
     context.commit('setUsername', '')
     context.commit('setUID', '')
     context.commit('setSecret', '')
     context.dispatch('leaveGame')
   },
-  leaveGame (context) {
+  leaveGame(context) {
     context.commit('setGameData', {})
     context.commit('setTopCards', {})
   },
-  logIn (context, data) {
+  logIn(context, data) {
     context.commit('setLoggedIn', true)
     context.commit('setUsername', data.name)
     context.commit('setUID', data.uid)
   },
 
-  socket_lobbiestoclient (context, data) {
+  socket_lobbiestoclient(context, data) {
     console.log('lobbies recieve')
     context.commit('setLobbiesList', data)
   },
 
-  setGID (context, data) {
+  setGID(context, data) {
     context.commit('setGID', data)
   },
-  setPlayerWhiteCards (context, data) {
+  setPlayerWhiteCards(context, data) {
     context.commit('setPlayerWhiteCards', data)
   },
-  socket_sendgameinfo (context, data) {
+  socket_sendgameinfo(context, data) {
     console.log('gamedata')
     console.log(data)
     if (context.state.gameData.state !== data.state) {
@@ -47,21 +47,21 @@ export default {
     context.commit('setIsCzar', data.czar === context.state.UID)
   },
 
-  socket_playerlist (context, data) {
+  socket_playerlist(context, data) {
     console.log(data)
     context.commit('setPlayerList', data)
   },
-  socket_setstate (context, data) {
+  socket_setstate(context, data) {
     if (context.state.state !== data) {
       // this._vm.$router.go(data)
       // this.$router.go(data)
     }
     context.commit('setState', data)
   },
-  socket_sendplayerwhitecards (context, data) {
+  socket_sendplayerwhitecards(context, data) {
     context.commit('setPlayerWhiteCards', data)
   },
-  socket_comegetwhitecards (context) {
+  socket_comegetwhitecards(context) {
     console.log('white cards ready')
 
     this._vm.$socket.client.emit(
@@ -89,7 +89,7 @@ export default {
       }
     )
   },
-  setTopCards (context, data) {
+  setTopCards(context, data) {
     context.commit('setTopCards', data)
-  }
+  },
 }

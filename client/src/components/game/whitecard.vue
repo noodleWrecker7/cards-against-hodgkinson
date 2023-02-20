@@ -7,27 +7,22 @@
 <script>
 export default {
   name: 'whitecard',
-  props: [
-    'cardData',
-    'cardKey'
-
-  ],
+  props: ['cardData', 'cardKey'],
   data: function () {
     return { selected: false }
   },
   methods: {
-    toggleCardClicked () {
+    toggleCardClicked() {
       // things
       console.log(this.cardKey)
       this.$emit('cardclicked', this.cardKey)
-    }
-  }
+    },
+  },
 }
 </script>
 
 <style scoped>
-
-.selected{
+.selected {
   border-color: #00e5ff !important;
   box-shadow: 5px 5px 5px 2px #0e0e0e;
   background-color: #acacac !important;
@@ -64,7 +59,7 @@ export default {
   height: 10em;
   box-sizing: border-box;
   display: block;
-  margin: .1em;
+  margin: 0.1em;
   flex-shrink: 2;
 }
 </style>

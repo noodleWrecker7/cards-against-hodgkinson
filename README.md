@@ -4,4 +4,4 @@ Client-side build:
 
 ~~A playable in-browser clone of Cards Against Humanity. The server should be running and playable - though I cant guarantee it, but it should be easy to clone the repo and run one yourself if needed. If there was interest in the project I would consider having the server up permanently, as of right now it's not a priority.~~
 
-This is being semi-actively worked on (being rewritten)
+### This project was in the process of a major re-work, and therefore any game servers are currently not running
